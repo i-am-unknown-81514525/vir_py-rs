@@ -1,4 +1,5 @@
 use crate::base;
+use crate::export::Export;
 
 #[derive(Debug)]
 pub struct VirPyInt {
