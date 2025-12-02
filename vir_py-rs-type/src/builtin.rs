@@ -14,6 +14,17 @@ impl VirPyInt {
     pub fn get_value(&self) -> i64 {
         self.value
     }
+
+    pub fn set_value(&mut self, value: i64) {
+        self.value = value;
+    }
 }
 
 impl base::VirPyType for VirPyInt {}
+
+impl base::VirPyTypeMut for VirPyInt {}
+impl Export<i64> for VirPyInt {
+    fn export(&self) -> i64 {
+        self.value
+    }
+}

@@ -41,7 +41,7 @@ impl<'ctx> ValueContainer<'ctx> {
 impl<'ctx> Debug for ValueContainer<'ctx> {
     fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
         f.debug_struct("ValueContainer")
-            .field("inner", &"&mut dyn VirPyTypeMut") 
+            .field("inner", &*self.inner)
             .finish()
     }
 }
