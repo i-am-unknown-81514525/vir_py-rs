@@ -7,8 +7,8 @@ edition = "2024"
 
 [workspace]
 members = [
-    "vir_py-rs-type",
-    "vir_py-rs-macro",
-    "vir_py-rs-parser",
-    "vir_py-rs-exec"
+    "vir_py_rs_type",
+    "vir_py_rs_macro",
+    "vir_py_rs_parser",
+    "vir_py_rs_exec"
 ]
