@@ -1,0 +1,8 @@
+[package]
+name = "vir_py_rs_exec"
+version = "0.1.0"
+edition = "2024"
+
+[dependencies]
+vir_py_rs_parser = { path = "../vir_py_rs_parser" }
+vir_py_rs_type = { path = "../vir_py_rs_type" }
