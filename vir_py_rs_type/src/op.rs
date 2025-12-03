@@ -41,7 +41,7 @@ macro_rules! __op_register {
                 let lhs_val = lhs.downcast_ref::<$lhs_type>()?;
                 let rhs_val= rhs.downcast_ref::<$rhs_type>()?;
                 let result: $out_type = $func(lhs_val, rhs_val);
-                ::core::option::Option::Some(ValueContainer::new(result, arena))
+                ::core::option::Option::Some($crate::base::ValueContainer::new(result, arena))
             }
 
             ::inventory::submit! {
@@ -66,12 +66,6 @@ macro_rules! register_op_add {
         $crate::__op_register!($lhs_type, $rhs_type, $out_type, $func, $crate::op::OpAddImpl)
     }
 }
-
-
-register_op_add!(VirPyInt, VirPyInt, VirPyInt);
-register_op_add!(VirPyFloat, VirPyFloat, VirPyFloat);
-register_op_add!(VirPyFloat, VirPyInt, VirPyFloat);
-register_op_add!(VirPyInt, VirPyFloat, VirPyFloat);
 
 
 pub struct OpSubImpl {
@@ -100,7 +94,7 @@ macro_rules! register_op_sub {
             fn _op<T>(lhs: &T, rhs: &$rhs_type) -> $out_type where T: ::std::ops::Sub<$rhs_type, Output=$out_type> + Clone {
                 lhs.clone() - *rhs
             }
-            $crate::register_op_add!($lhs_type, $rhs_type, $out_type, _op);
+            $crate::register_op_sub!($lhs_type, $rhs_type, $out_type, _op);
         };
     };
 
@@ -108,9 +102,3 @@ macro_rules! register_op_sub {
         $crate::__op_register!($lhs_type, $rhs_type, $out_type, $func, $crate::op::OpSubImpl)
     }
 }
-
-
-register_op_sub!(VirPyInt, VirPyInt, VirPyInt);
-register_op_sub!(VirPyFloat, VirPyFloat, VirPyFloat);
-register_op_sub!(VirPyFloat, VirPyInt, VirPyFloat);
-register_op_sub!(VirPyInt, VirPyFloat, VirPyFloat);

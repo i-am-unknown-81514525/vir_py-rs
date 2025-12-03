@@ -1,4 +1,4 @@
-use crate::base;
+use crate::{base, register_op_add, register_op_sub};
 use crate::export::Export;
 use std::ops::{Add, Sub};
 
@@ -91,6 +91,11 @@ impl Add<VirPyFloat> for VirPyInt {
     }
 }
 
+register_op_add!(VirPyInt, VirPyInt, VirPyInt);
+register_op_add!(VirPyFloat, VirPyFloat, VirPyFloat);
+register_op_add!(VirPyFloat, VirPyInt, VirPyFloat);
+register_op_add!(VirPyInt, VirPyFloat, VirPyFloat);
+
 // op: Sub
 
 impl Sub for VirPyInt {
@@ -120,3 +125,8 @@ impl Sub<VirPyFloat> for VirPyInt {
         VirPyFloat::new(self.value as f64 - rhs.value)
     }
 }
+
+register_op_sub!(VirPyInt, VirPyInt, VirPyInt);
+register_op_sub!(VirPyFloat, VirPyFloat, VirPyFloat);
+register_op_sub!(VirPyFloat, VirPyInt, VirPyFloat);
+register_op_sub!(VirPyInt, VirPyFloat, VirPyFloat);
