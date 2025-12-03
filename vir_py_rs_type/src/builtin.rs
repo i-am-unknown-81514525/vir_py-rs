@@ -1,6 +1,6 @@
-use crate::{base, register_op_add, register_op_sub};
+use crate::{base, register_op_add, register_op_sub, register_op_mul};
 use crate::export::Export;
-use std::ops::{Add, Sub};
+use std::ops::{Add, Sub, Mul, Div};
 
 // Definition
 
@@ -130,3 +130,39 @@ register_op_sub!(VirPyInt, VirPyInt, VirPyInt);
 register_op_sub!(VirPyFloat, VirPyFloat, VirPyFloat);
 register_op_sub!(VirPyFloat, VirPyInt, VirPyFloat);
 register_op_sub!(VirPyInt, VirPyFloat, VirPyFloat);
+
+
+// op: Sub
+
+impl Mul for VirPyInt {
+    type Output = Self;
+    fn mul(self, rhs: Self) -> Self::Output {
+        Self::new(self.value * rhs.value)
+    }
+}
+
+impl Mul for VirPyFloat {
+    type Output = Self;
+    fn mul(self, rhs: Self) -> Self::Output {
+        Self::new(self.value * rhs.value)
+    }
+}
+
+impl Mul<VirPyInt> for VirPyFloat {
+    type Output = Self;
+    fn mul(self, rhs: VirPyInt) -> Self::Output {
+        Self::new(self.value * rhs.value as f64)
+    }
+}
+
+impl Mul<VirPyFloat> for VirPyInt {
+    type Output = VirPyFloat;
+    fn mul(self, rhs: VirPyFloat) -> Self::Output {
+        VirPyFloat::new(self.value as f64 * rhs.value)
+    }
+}
+
+register_op_mul!(VirPyInt, VirPyInt, VirPyInt);
+register_op_mul!(VirPyFloat, VirPyFloat, VirPyFloat);
+register_op_mul!(VirPyFloat, VirPyInt, VirPyFloat);
+register_op_mul!(VirPyInt, VirPyFloat, VirPyFloat);

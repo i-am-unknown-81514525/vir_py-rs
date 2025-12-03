@@ -16,6 +16,18 @@ pub struct OpAddImpl {
 
 inventory::collect!(OpAddImpl);
 
+pub struct OpSubImpl {
+    pub function: OpFn,
+}
+
+inventory::collect!(OpSubImpl);
+
+pub struct OpMulImpl {
+    pub function: OpFn,
+}
+
+inventory::collect!(OpMulImpl);
+
 pub fn op_add<'ctx>(
     lhs: &ValueContainer<'ctx>,
     rhs: &ValueContainer<'ctx>,
@@ -67,13 +79,6 @@ macro_rules! register_op_add {
     }
 }
 
-
-pub struct OpSubImpl {
-    pub function: OpFn,
-}
-
-inventory::collect!(OpSubImpl);
-
 pub fn op_sub<'ctx>(
     lhs: &ValueContainer<'ctx>,
     rhs: &ValueContainer<'ctx>,
@@ -100,5 +105,34 @@ macro_rules! register_op_sub {
 
     ($lhs_type:ty, $rhs_type:ty, $out_type:ty, $func:expr) => {
         $crate::__op_register!($lhs_type, $rhs_type, $out_type, $func, $crate::op::OpSubImpl)
+    }
+}
+
+pub fn op_mul<'ctx>(
+    lhs: &ValueContainer<'ctx>,
+    rhs: &ValueContainer<'ctx>,
+    arena: &'ctx Bump,
+) -> Option<ValueContainer<'ctx>> {
+    for implementation in inventory::iter::<OpMulImpl> {
+        if let Some(result) = (implementation.function)(lhs, rhs, arena) {
+            return Some(result);
+        }
+    }
+    None
+}
+
+#[macro_export]
+macro_rules! register_op_mul {
+    ($lhs_type:ty, $rhs_type:ty, $out_type:ty) => {
+        const _: () = {
+            fn _op<T>(lhs: &T, rhs: &$rhs_type) -> $out_type where T: ::std::ops::Mul<$rhs_type, Output=$out_type> + Clone {
+                lhs.clone() * *rhs
+            }
+            $crate::register_op_mul!($lhs_type, $rhs_type, $out_type, _op);
+        };
+    };
+
+    ($lhs_type:ty, $rhs_type:ty, $out_type:ty, $func:expr) => {
+        $crate::__op_register!($lhs_type, $rhs_type, $out_type, $func, $crate::op::OpMulImpl)
     }
 }
