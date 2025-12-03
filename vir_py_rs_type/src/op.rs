@@ -1,5 +1,4 @@
-use std::process::Output;
-use crate::base::{ValueContainer, VirPyType, VirPyTypeMut};
+use crate::base::{ValueContainer};
 use crate::builtin::{VirPyFloat, VirPyInt};
 use bumpalo::Bump;
 
@@ -31,17 +30,8 @@ pub fn op_add<'ctx>(
 }
 
 #[macro_export]
-macro_rules! register_op_add {
-    ($lhs_type:ty, $rhs_type:ty, $out_type:ty) => {
-        const _: () = {
-            fn _op<T>(lhs: &T, rhs: &$rhs_type) -> $out_type where T: ::std::ops::Add<$rhs_type, Output=$out_type> + Clone {
-                lhs.clone() + *rhs
-            }
-            $crate::register_op_add!($lhs_type, $rhs_type, $out_type, _op);
-        };
-    };
-
-    ($lhs_type:ty, $rhs_type:ty, $out_type:ty, $func:expr) => {
+macro_rules! op_register {
+    ($lhs_type:ty, $rhs_type:ty, $out_type:ty, $func:expr, $impl_path:path) => {
         const _: () = {
             fn _op_impl<'ctx>(
                 lhs: &$crate::base::ValueContainer<'ctx>,
@@ -55,9 +45,25 @@ macro_rules! register_op_add {
             }
 
             ::inventory::submit! {
-                $crate::op::OpAddImpl { function: _op_impl }
+                $impl_path { function: _op_impl }
             }
         };
+    };
+}
+
+#[macro_export]
+macro_rules! register_op_add {
+    ($lhs_type:ty, $rhs_type:ty, $out_type:ty) => {
+        const _: () = {
+            fn _op<T>(lhs: &T, rhs: &$rhs_type) -> $out_type where T: ::std::ops::Add<$rhs_type, Output=$out_type> + Clone {
+                lhs.clone() + *rhs
+            }
+            $crate::register_op_add!($lhs_type, $rhs_type, $out_type, _op);
+        };
+    };
+
+    ($lhs_type:ty, $rhs_type:ty, $out_type:ty, $func:expr) => {
+        $crate::op_register!($lhs_type, $rhs_type, $out_type, $func, $crate::op::OpAddImpl)
     }
 }
 
@@ -99,22 +105,7 @@ macro_rules! register_op_sub {
     };
 
     ($lhs_type:ty, $rhs_type:ty, $out_type:ty, $func:expr) => {
-        const _: () = {
-            fn _op_impl<'ctx>(
-                lhs: &$crate::base::ValueContainer<'ctx>,
-                rhs: &$crate::base::ValueContainer<'ctx>,
-                arena: &'ctx ::bumpalo::Bump,
-            ) -> ::core::option::Option<$crate::base::ValueContainer<'ctx>> {
-                let lhs_val = lhs.downcast_ref::<$lhs_type>()?;
-                let rhs_val= rhs.downcast_ref::<$rhs_type>()?;
-                let result: $out_type = $func(lhs_val, rhs_val);
-                ::core::option::Option::Some(ValueContainer::new(result, arena))
-            }
-
-            ::inventory::submit! {
-                $crate::op::OpSubImpl { function: _op_impl }
-            }
-        };
+        $crate::op_register!($lhs_type, $rhs_type, $out_type, $func, $crate::op::OpSubImpl)
     }
 }
 
