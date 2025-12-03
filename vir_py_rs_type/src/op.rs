@@ -4,7 +4,7 @@ use crate::builtin::{VirPyFloat, VirPyInt};
 use bumpalo::Bump;
 
 
-type OpAddFn = for<'ctx> fn(
+type OpFn = for<'ctx> fn(
     &ValueContainer<'ctx>,
     &ValueContainer<'ctx>,
     &'ctx Bump,
@@ -12,7 +12,7 @@ type OpAddFn = for<'ctx> fn(
 
 
 pub struct OpAddImpl {
-    pub function: OpAddFn,
+    pub function: OpFn,
 }
 
 inventory::collect!(OpAddImpl);
