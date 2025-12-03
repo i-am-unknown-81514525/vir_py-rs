@@ -1,6 +1,8 @@
 use crate::base;
 use crate::export::Export;
-use std::ops::Add;
+use std::ops::{Add, Sub};
+
+// Definition
 
 #[derive(Debug, Clone, Copy)]
 pub struct VirPyInt {
@@ -23,19 +25,6 @@ impl VirPyInt {
 
 impl base::VirPyType for VirPyInt {}
 impl base::VirPyTypeMut for VirPyInt {}
-
-impl Export<i64> for VirPyInt {
-    fn export(&self) -> i64 {
-        self.value
-    }
-}
-
-impl Add for VirPyInt {
-    type Output = Self;
-    fn add(self, rhs: Self) -> Self::Output {
-        Self::new(self.value + rhs.value)
-    }
-}
 
 
 #[derive(Debug, Clone, Copy)]
@@ -60,9 +49,24 @@ impl VirPyFloat {
 impl base::VirPyType for VirPyFloat {}
 impl base::VirPyTypeMut for VirPyFloat {}
 
+// Export
+impl Export<i64> for VirPyInt {
+    fn export(&self) -> i64 {
+        self.value
+    }
+}
+
 impl Export<f64> for VirPyFloat {
     fn export(&self) -> f64 {
         self.value
+    }
+}
+
+// op: Add
+impl Add for VirPyInt {
+    type Output = Self;
+    fn add(self, rhs: Self) -> Self::Output {
+        Self::new(self.value + rhs.value)
     }
 }
 
@@ -84,5 +88,35 @@ impl Add<VirPyFloat> for VirPyInt {
     type Output = VirPyFloat;
     fn add(self, rhs: VirPyFloat) -> Self::Output {
         VirPyFloat::new(self.value as f64 + rhs.value)
+    }
+}
+
+// op: Sub
+
+impl Sub for VirPyInt {
+    type Output = Self;
+    fn sub(self, rhs: Self) -> Self::Output {
+        Self::new(self.value - rhs.value)
+    }
+}
+
+impl Sub for VirPyFloat {
+    type Output = Self;
+    fn sub(self, rhs: Self) -> Self::Output {
+        Self::new(self.value - rhs.value)
+    }
+}
+
+impl Sub<VirPyInt> for VirPyFloat {
+    type Output = Self;
+    fn sub(self, rhs: VirPyInt) -> Self::Output {
+        Self::new(self.value - rhs.value as f64)
+    }
+}
+
+impl Sub<VirPyFloat> for VirPyInt {
+    type Output = VirPyFloat;
+    fn sub(self, rhs: VirPyFloat) -> Self::Output {
+        VirPyFloat::new(self.value as f64 - rhs.value)
     }
 }
