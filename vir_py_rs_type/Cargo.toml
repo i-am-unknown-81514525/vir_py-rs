@@ -1,5 +1,5 @@
 [package]
-name = "vir_py-rs-type"
+name = "vir_py_rs_type"
 version = "0.1.0"
 edition = "2024"
 

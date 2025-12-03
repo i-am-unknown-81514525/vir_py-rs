@@ -1,11 +1,11 @@
 [package]
-name = "vir_py-rs-parser"
+name = "vir_py_rs_parser"
 version = "0.1.0"
 edition = "2024"
 
 [dependencies]
 syn = { version = "2.0.106", features = ["full"] }
-vir_py-rs-type = { path = "../vir_py-rs-type" }
+vir_py_rs_type = { path = "../vir_py_rs_type" }
 
 [dev-dependencies]
 syn = { version = "2.0.106", features = ["full", "extra-traits"] }
