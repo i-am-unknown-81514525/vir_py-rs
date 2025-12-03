@@ -30,7 +30,7 @@ pub fn op_add<'ctx>(
 }
 
 #[macro_export]
-macro_rules! op_register {
+macro_rules! __op_register {
     ($lhs_type:ty, $rhs_type:ty, $out_type:ty, $func:expr, $impl_path:path) => {
         const _: () = {
             fn _op_impl<'ctx>(
@@ -63,7 +63,7 @@ macro_rules! register_op_add {
     };
 
     ($lhs_type:ty, $rhs_type:ty, $out_type:ty, $func:expr) => {
-        $crate::op_register!($lhs_type, $rhs_type, $out_type, $func, $crate::op::OpAddImpl)
+        $crate::__op_register!($lhs_type, $rhs_type, $out_type, $func, $crate::op::OpAddImpl)
     }
 }
 
@@ -105,7 +105,7 @@ macro_rules! register_op_sub {
     };
 
     ($lhs_type:ty, $rhs_type:ty, $out_type:ty, $func:expr) => {
-        $crate::op_register!($lhs_type, $rhs_type, $out_type, $func, $crate::op::OpSubImpl)
+        $crate::__op_register!($lhs_type, $rhs_type, $out_type, $func, $crate::op::OpSubImpl)
     }
 }
 
