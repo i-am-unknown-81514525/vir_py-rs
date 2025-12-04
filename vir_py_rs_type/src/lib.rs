@@ -1,5 +1,8 @@
+#[macro_use]
+pub mod op;
+
 pub mod base;
 pub mod builtin;
 pub mod export;
-pub mod op;
+
 pub mod utils;

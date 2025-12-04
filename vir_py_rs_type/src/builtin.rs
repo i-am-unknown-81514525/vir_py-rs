@@ -1,10 +1,10 @@
 use std::collections::HashMap;
 use std::iter::Map;
-use crate::{base, register_op_add, register_op_sub, register_op_mul};
 use crate::export::Export;
 use std::ops::{Add, Sub, Mul, Div, Deref};
 use std::rc::Rc;
 use crate::base::VirPyTypeMut;
+use crate::{base};
 // Definition
 
 #[derive(Debug, Clone, Copy)]
