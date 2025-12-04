@@ -1,3 +1,4 @@
+use std::cell::RefCell;
 use std::collections::HashMap;
 use std::iter::Map;
 use crate::export::Export;
@@ -54,14 +55,14 @@ impl base::VirPyTypeMut for VirPyFloat {}
 
 #[derive(Debug)]
 pub struct Mapping {
-    mapping: HashMap<String, Rc<Box<dyn VirPyTypeMut>>>
+    mapping: HashMap<String, Rc<RefCell<Box<dyn VirPyTypeMut>>>>
 }
 
 impl Mapping { // Need memory address system later so the mapping is synced?
     pub fn new(&mut self, mapping: HashMap<String, Box<dyn VirPyTypeMut>>) {
         let mut map = HashMap::new();
         for (k, v) in mapping.iter() {
-            map.insert(k.clone(), Rc::new(v.clone_box_mut()));
+            map.insert(k.clone(), Rc::new(RefCell::new(v.clone_box_mut())));
         }
         self.mapping = map;
     }
@@ -78,7 +79,7 @@ impl Clone for Mapping {
 }
 
 impl Deref for Mapping {
-    type Target = HashMap<String, Rc<Box<dyn VirPyTypeMut>>>;
+    type Target = HashMap<String, Rc<RefCell<Box<dyn VirPyTypeMut>>>>;
     fn deref(&self) -> &Self::Target {
         &self.mapping
     }
@@ -86,25 +87,25 @@ impl Deref for Mapping {
 
 #[derive(Debug, Clone)]
 pub struct VirPyObject {
-    mapping: Rc<Mapping>
+    mapping: Rc<RefCell<Mapping>>
 }
 
-impl Into<Mapping> for HashMap<String, Rc<Box<dyn VirPyTypeMut>>> {
+impl Into<Mapping> for HashMap<String, Rc<RefCell<Box<dyn VirPyTypeMut>>>> {
     fn into(self) -> Mapping {
         Mapping { mapping: self }
     }
 }
 
 impl VirPyObject {
-    pub fn new(mapping: Rc<Mapping>) -> Self {
+    pub fn new(mapping: Rc<RefCell<Mapping>>) -> Self {
         VirPyObject { mapping }
     }
 
-    pub fn from_raw(&self, mapping: HashMap<String, Rc<Box<dyn VirPyTypeMut>>>) -> Self {
-        return Self::new(Rc::new(mapping.into()))
+    pub fn from_raw(&self, mapping: HashMap<String, Rc<RefCell<Box<dyn VirPyTypeMut>>>>) -> Self {
+        return Self::new(Rc::new(RefCell::new(mapping.into())))
     }
 
-    pub fn get_value(&self) -> Rc<Mapping> {
+    pub fn get_value(&self) -> Rc<RefCell<Mapping>> {
         self.mapping.clone()
     }
 }
