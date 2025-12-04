@@ -195,7 +195,7 @@ register_op_sub!(VirPyFloat, VirPyInt, VirPyFloat);
 register_op_sub!(VirPyInt, VirPyFloat, VirPyFloat);
 
 
-// op: Sub
+// op: Mul
 
 impl Mul for VirPyInt {
     type Output = Self;
@@ -229,3 +229,39 @@ register_op_mul!(VirPyInt, VirPyInt, VirPyInt);
 register_op_mul!(VirPyFloat, VirPyFloat, VirPyFloat);
 register_op_mul!(VirPyFloat, VirPyInt, VirPyFloat);
 register_op_mul!(VirPyInt, VirPyFloat, VirPyFloat);
+
+
+// op: Div
+
+impl Div for VirPyInt {
+    type Output = Self;
+    fn div(self, rhs: Self) -> Self::Output {
+        Self::new(self.value / rhs.value)
+    }
+}
+
+impl Div for VirPyFloat {
+    type Output = Self;
+    fn div(self, rhs: Self) -> Self::Output {
+        Self::new(self.value / rhs.value)
+    }
+}
+
+impl Div<VirPyInt> for VirPyFloat {
+    type Output = Self;
+    fn div(self, rhs: VirPyInt) -> Self::Output {
+        Self::new(self.value / rhs.value as f64)
+    }
+}
+
+impl Div<VirPyFloat> for VirPyInt {
+    type Output = VirPyFloat;
+    fn div(self, rhs: VirPyFloat) -> Self::Output {
+        VirPyFloat::new(self.value as f64 / rhs.value)
+    }
+}
+
+register_op_div!(VirPyInt, VirPyInt, VirPyInt);
+register_op_div!(VirPyFloat, VirPyFloat, VirPyFloat);
+register_op_div!(VirPyFloat, VirPyInt, VirPyFloat);
+register_op_div!(VirPyInt, VirPyFloat, VirPyFloat);

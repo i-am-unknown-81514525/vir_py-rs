@@ -78,3 +78,4 @@ macro_rules! __op_create {
 __op_create!(add, Add, +);
 __op_create!(sub, Sub, -);
 __op_create!(mul, Mul, *);
+__op_create!(div, Div, /);
