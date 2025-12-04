@@ -1,7 +1,10 @@
+use std::collections::HashMap;
+use std::iter::Map;
 use crate::{base, register_op_add, register_op_sub, register_op_mul};
 use crate::export::Export;
-use std::ops::{Add, Sub, Mul, Div};
-
+use std::ops::{Add, Sub, Mul, Div, Deref};
+use std::rc::Rc;
+use crate::base::VirPyTypeMut;
 // Definition
 
 #[derive(Debug, Clone, Copy)]
@@ -24,7 +27,7 @@ impl VirPyInt {
 }
 
 impl base::VirPyType for VirPyInt {}
-impl base::VirPyTypeMut for VirPyInt {}
+impl VirPyTypeMut for VirPyInt {}
 
 
 #[derive(Debug, Clone, Copy)]
@@ -48,6 +51,66 @@ impl VirPyFloat {
 
 impl base::VirPyType for VirPyFloat {}
 impl base::VirPyTypeMut for VirPyFloat {}
+
+#[derive(Debug)]
+pub struct Mapping {
+    mapping: HashMap<String, Rc<Box<dyn VirPyTypeMut>>>
+}
+
+impl Mapping { // Need memory address system later so the mapping is synced?
+    pub fn new(&mut self, mapping: HashMap<String, Box<dyn VirPyTypeMut>>) {
+        let mut map = HashMap::new();
+        for (k, v) in mapping.iter() {
+            map.insert(k.clone(), Rc::new(v.clone_box_mut()));
+        }
+        self.mapping = map;
+    }
+}
+
+impl Clone for Mapping {
+    fn clone(&self) -> Self {
+        let mut map = HashMap::new();
+        for (k, v) in self.mapping.iter() {
+            map.insert(k.clone(), v.clone());
+        };
+        Self { mapping: map }
+    }
+}
+
+impl Deref for Mapping {
+    type Target = HashMap<String, Rc<Box<dyn VirPyTypeMut>>>;
+    fn deref(&self) -> &Self::Target {
+        &self.mapping
+    }
+}
+
+#[derive(Debug, Clone)]
+pub struct VirPyObject {
+    mapping: Rc<Mapping>
+}
+
+impl Into<Mapping> for HashMap<String, Rc<Box<dyn VirPyTypeMut>>> {
+    fn into(self) -> Mapping {
+        Mapping { mapping: self }
+    }
+}
+
+impl VirPyObject {
+    pub fn new(mapping: Rc<Mapping>) -> Self {
+        VirPyObject { mapping }
+    }
+
+    pub fn from_raw(&self, mapping: HashMap<String, Rc<Box<dyn VirPyTypeMut>>>) -> Self {
+        return Self::new(Rc::new(mapping.into()))
+    }
+
+    pub fn get_value(&self) -> Rc<Mapping> {
+        self.mapping.clone()
+    }
+}
+
+impl base::VirPyType for VirPyObject {}
+impl base::VirPyTypeMut for VirPyObject {}
 
 // Export
 impl Export<i64> for VirPyInt {
