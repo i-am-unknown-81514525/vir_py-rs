@@ -1,3 +1,4 @@
+use std::cell::RefCell;
 use std::rc::Rc;
 use bumpalo::Bump;
 use crate::builtin::Mapping;
@@ -7,13 +8,13 @@ pub type Result<T> = core::result::Result<T, SandboxExecutionError>;
 
 #[derive(Debug, Clone)]
 pub struct ExecutionContext {
-    pub arena: Rc<Bump>,
+    pub arena: Rc<RefCell<Bump>>,
     pub ttl: i64,
-    pub mapping: Rc<Mapping>
+    pub mapping: Vec<Rc<RefCell<Mapping>>> // Top layer: most local scope
 }
 
 impl ExecutionContext {
-    pub fn new(arena: Rc<Bump>, ttl: i64, mapping: Rc<Mapping>) -> Self {
+    pub fn new(arena: Rc<RefCell<Bump>>, ttl: i64, mapping: Vec<Rc<RefCell<Mapping>>>) -> Self {
         Self {
             arena,
             ttl,
