@@ -4,11 +4,49 @@ use std::ops::{Deref, DerefMut};
 use bumpalo::Bump;
 use crate::export::Export;
 
+pub trait DynClone {
+    fn clone_box<'a>(&self) -> Box<dyn VirPyType + 'a> where Self: 'a;
+}
 
-pub trait VirPyType: Any + Debug {}
+impl<T> DynClone for T
+where
+    T: Clone + VirPyType + 'static,
+{
+    fn clone_box<'a>(&self) -> Box<dyn VirPyType + 'a> where Self: 'a {
+        Box::new(self.clone())
+    }
+
+}
+
+pub trait DynCloneMut {
+    fn clone_box_mut<'a>(&self) -> Box<dyn VirPyTypeMut + 'a> where Self: 'a;
+}
+
+impl<T> DynCloneMut for T
+where 
+    T: Clone + VirPyTypeMut + 'static,
+{
+    fn clone_box_mut<'a>(&self) -> Box<dyn VirPyTypeMut + 'a> where Self: 'a {
+        Box::new(self.clone())
+    }
+}
+
+impl<'a> Clone for Box<dyn VirPyType + 'a> {
+    fn clone(&self) -> Self {
+        self.clone_box()
+    }
+}
+
+impl<'a> Clone for Box<dyn VirPyTypeMut + 'a> {
+    fn clone(&self) -> Self {
+        self.clone_box_mut()
+    }
+}
+
+pub trait VirPyType: Any + Debug + DynClone {}
 
 
-pub trait VirPyTypeMut: VirPyType {}
+pub trait VirPyTypeMut: VirPyType + DynCloneMut {}
 
 pub struct ValueContainer<'ctx> {
     inner: &'ctx mut dyn VirPyTypeMut,
