@@ -159,3 +159,33 @@ register_op_mul!(VirPyInt, VirPyInt, ValueKind::Int);
 register_op_mul!(VirPyFloat, VirPyFloat, ValueKind::Float);
 register_op_mul!(VirPyInt, VirPyFloat, ValueKind::Float);
 register_op_mul!(VirPyFloat, VirPyInt, ValueKind::Float);
+
+impl Div for VirPyInt {
+    type Output = VirPyFloat;
+    fn div(self, rhs: Self) -> VirPyFloat {
+        VirPyFloat::new((self.value as f64) / (rhs.value as f64))
+    }
+}
+impl Div for VirPyFloat {
+    type Output = Self;
+    fn div(self, rhs: Self) -> Self {
+        Self::new(self.value / rhs.value)
+    }
+}
+impl Div<VirPyInt> for VirPyFloat {
+    type Output = Self;
+    fn div(self, rhs: VirPyInt) -> Self {
+        Self::new(self.value / (rhs.value as f64))
+    }
+}
+impl Div<VirPyFloat> for VirPyInt {
+    type Output = VirPyFloat;
+    fn div(self, rhs: VirPyFloat) -> Self::Output {
+        VirPyFloat::new(self.value as f64 / rhs.value)
+    }
+}
+
+register_op_div!(VirPyInt, VirPyInt, ValueKind::Float);
+register_op_div!(VirPyFloat, VirPyFloat, ValueKind::Float);
+register_op_div!(VirPyInt, VirPyFloat, ValueKind::Float);
+register_op_div!(VirPyFloat, VirPyInt, ValueKind::Float);
