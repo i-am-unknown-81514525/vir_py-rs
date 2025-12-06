@@ -1,12 +1,13 @@
 use bumpalo::Bump;
-use vir_py_rs_type::base::{ValueContainer, VirPyType, VirPyTypeMut};
+use vir_py_rs_type::base::{ValueContainer, ValueKind};
 use vir_py_rs_type::builtin::VirPyInt;
 
-
 #[test]
-fn test_value_container() {
+fn test_value_creation_and_downcast() {
     let arena = Bump::new();
-    let mut container = ValueContainer::new(VirPyInt::new(42), &arena);
-    container.downcast_mut::<VirPyInt>().unwrap().set_value(100);
-    println!("{:?}", container);
+    let int_kind = ValueKind::Int(VirPyInt::new(42));
+    let value_handle = ValueContainer::new(int_kind, &arena);
+    let extracted_int = value_handle.as_int().expect("Downcast to Int failed");
+    assert_eq!(extracted_int.value, 42);
+    println!("Successfully created and downcasted value: {:?}", value_handle);
 }
