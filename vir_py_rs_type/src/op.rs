@@ -21,11 +21,20 @@ macro_rules! __op_register {
             ) -> Option<$crate::base::Value<'ctx>> {
                 let lhs_val = <$lhs_type as $crate::base::Downcast>::from_value(lhs)?;
                 let rhs_val = <$rhs_type as $crate::base::Downcast>::from_value(rhs)?;
-                let result = $func(lhs_val.clone(), rhs_val.clone());
-                Some($crate::base::ValueContainer::new(
-                    $output_wrapper(result),
-                    arena,
-                ))
+                match $func(lhs_val.clone(), rhs_val.clone()) {
+                    Ok(result) => {
+                        Some($crate::base::ValueContainer::new(
+                            $output_wrapper(result),
+                            arena,
+                        ))
+                    }
+                    Err(err) => {
+                        Some($crate::base::ValueContainer::new(
+                            $crate::base::ValueKind::ErrorWrapped(err),
+                            arena,
+                        ))
+                    }
+                }
             }
 
             ::inventory::submit! {

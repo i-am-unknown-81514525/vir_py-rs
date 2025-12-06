@@ -1,18 +1,24 @@
 use crate::builtin::{VirPyFloat, VirPyInt, VirPyObject};
 use bumpalo::Bump;
 use std::fmt::Debug;
+use crate::error::SandboxExecutionError;
 
 pub type Value<'ctx> = &'ctx ValueContainer<'ctx>;
 
-#[derive(Debug)]
+#[derive(Debug, Clone)]
 pub enum ValueKind<'ctx> {
     Int(VirPyInt),
     Float(VirPyFloat),
     Object(VirPyObject<'ctx>),
+    ErrorWrapped(SandboxExecutionError)
 }
 
 pub trait Downcast<'ctx>: Sized {
     fn from_value(value: Value<'ctx>) -> Option<&'ctx Self>;
+}
+
+pub trait Upcast<'ctx>: Sized {
+    fn from_value(&'ctx self) -> ValueKind<'ctx>;
 }
 
 #[derive(Debug)]
@@ -30,6 +36,7 @@ impl<'ctx> ValueContainer<'ctx> {
             ValueKind::Int(i) => ValueKind::Int(i.clone()),
             ValueKind::Float(f) => ValueKind::Float(f.clone()),
             ValueKind::Object(o) => ValueKind::Object(o.clone()),
+            ValueKind::ErrorWrapped(e) => ValueKind::ErrorWrapped(e.clone()),
         };
         ValueContainer::new(new_kind, arena)
     }
@@ -51,6 +58,13 @@ impl<'ctx> ValueContainer<'ctx> {
     pub fn as_object(&self) -> Option<&VirPyObject<'ctx>> {
         match &self.kind {
             ValueKind::Object(o) => Some(o),
+            _ => None,
+        }
+    }
+
+    pub fn as_error(&self) -> Option<&SandboxExecutionError> {
+        match &self.kind {
+            ValueKind::ErrorWrapped(e) => Some(e),
             _ => None,
         }
     }
