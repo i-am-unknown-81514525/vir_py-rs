@@ -1,7 +1,6 @@
 use crate::base::{Value, ValueContainer, ValueKind, Downcast};
 use crate::builtin::{VirPyFloat, VirPyInt};
 use bumpalo::Bump;
-use std::ops::Add;
 
 
 type OpFn = for<'ctx> fn(
@@ -11,7 +10,7 @@ type OpFn = for<'ctx> fn(
 ) -> Option<Value<'ctx>>;
 
 #[macro_export]
-macro_rules! __register_op {
+macro_rules! __op_register {
     (
         $lhs_type:ty,
         $rhs_type:ty,
@@ -33,35 +32,43 @@ macro_rules! __register_op {
 
             ::inventory::submit! {
                 $impl_path { function: _op_impl }
-            }
+            };
         };
     };
 }
 
-pub struct OpAddImpl { pub function: OpFn }
-inventory::collect!(OpAddImpl);
-
-pub fn op_add<'ctx>(lhs: Value<'ctx>, rhs: Value<'ctx>, arena: &'ctx Bump) -> Option<Value<'ctx>> {
-    for implementation in inventory::iter::<OpAddImpl> {
-        if let Some(result) = (implementation.function)(lhs, rhs, arena) {
-            return Some(result);
+macro_rules! __op_create {
+    ($name:tt, $alt_name:tt, $op:tt) => {
+        __op_create!(@impl $name, @impl $alt_name, $op, $);
+    };
+    (@impl $name:tt, @impl $alt_name:tt, $op:tt, $d:tt) => {
+        ::paste::paste!{
+            pub struct [< Op $alt_name Impl>] {pub function: OpFn }
+            ::inventory::collect!([< Op $alt_name Impl>]);
+            pub fn [< op_ $name>]<'ctx>(lhs: $crate::base::Value<'ctx>, rhs: $crate::base::Value<'ctx>, arena: &'ctx ::bumpalo::Bump) -> ::core::option::Option<$crate::base::Value<'ctx>> {
+                for implementation in ::inventory::iter::<[<Op $alt_name Impl>]> {
+                    if let ::core::option::Option::Some(result) = (implementation.function)(lhs, rhs, arena) {
+                        return Some(result);
+                    }
+                }
+                None
+            }
+            #[macro_export]
+            macro_rules! [<register_op_ $name>] {
+                ($d lhs_type:ty, $d rhs_type:ty, $d output_wrapper:path) => {
+                    [<register_op_ $name>]!($d lhs_type, $d rhs_type, $d output_wrapper, |a, b| a $op b);
+                };
+                ($d lhs_type:ty, $d rhs_type:ty, $d output_wrapper:path, $d func:expr) => {
+                    $crate::__op_register!($d lhs_type, $d rhs_type, $d func, $d output_wrapper, $crate::op::[<Op $alt_name Impl>]);
+                }
+            }
         }
-    }
-    None
-}
-
-#[macro_export]
-macro_rules! register_op_add {
-    ($lhs_type:ty, $rhs_type:ty, $output_wrapper:path) => {
-        $crate::__register_op!(
-            $lhs_type,
-            $rhs_type,
-            |a, b| a + b,
-            $output_wrapper,
-            $crate::op::OpAddImpl
-        );
     };
 }
 
-register_op_add!(VirPyInt,   VirPyInt,   ValueKind::Int);
-register_op_add!(VirPyFloat, VirPyFloat, ValueKind::Float);
+
+
+__op_create!(add, Add, +);
+__op_create!(sub, Sub, -);
+__op_create!(mul, Mul, *);
+__op_create!(div, Div, /);

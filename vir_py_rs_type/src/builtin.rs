@@ -58,6 +58,7 @@ impl<'ctx> Downcast<'ctx> for VirPyFloat {
 impl Add for VirPyInt { type Output = Self; fn add(self, rhs: Self) -> Self { Self::new(self.value + rhs.value) } }
 impl Add for VirPyFloat { type Output = Self; fn add(self, rhs: Self) -> Self { Self::new(self.value + rhs.value) } }
 
-register_op_add!(VirPyInt,   VirPyInt,   ValueKind::Int);
+
+register_op_add!(VirPyInt, VirPyInt, ValueKind::Int);
 register_op_add!(VirPyFloat, VirPyFloat, ValueKind::Float);
 
