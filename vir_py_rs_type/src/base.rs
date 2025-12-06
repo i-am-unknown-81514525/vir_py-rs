@@ -12,7 +12,8 @@ pub enum ValueKind<'ctx> {
     Object(VirPyObject<'ctx>),
     ErrorWrapped(SandboxExecutionError),
     Bool(bool),
-    String(String)
+    String(String),
+    None
 }
 
 pub trait Downcast<'ctx>: Sized {
@@ -47,6 +48,18 @@ impl<'ctx> Upcast<'ctx> for String {
     }
 }
 
+impl<'ctx> Downcast<'ctx> for () {
+    fn from_value(value: Value<'ctx>) -> Option<&'ctx Self> {
+        value.as_none()
+    }
+}
+
+impl<'ctx> Upcast<'ctx> for () {
+    fn from_value(&'ctx self) -> ValueKind<'ctx> {
+        ValueKind::None
+    }
+}
+
 #[derive(Debug)]
 pub struct ValueContainer<'ctx> {
     pub kind: ValueKind<'ctx>,
@@ -65,6 +78,7 @@ impl<'ctx> ValueContainer<'ctx> {
             ValueKind::ErrorWrapped(e) => ValueKind::ErrorWrapped(e.clone()),
             ValueKind::Bool(b) => ValueKind::Bool(b.clone()),
             ValueKind::String(s) => ValueKind::String(s.clone()),
+            ValueKind::None => ValueKind::None
         };
         ValueContainer::new(new_kind, arena)
     }
@@ -107,6 +121,13 @@ impl<'ctx> ValueContainer<'ctx> {
     pub fn as_string(&self) -> Option<&String> {
         match &self.kind {
             ValueKind::String(e) => Some(e),
+            _ => None,
+        }
+    }
+    
+    pub fn as_none(&self) -> Option<&()> {
+        match &self.kind {
+            ValueKind::None => Some(&()),
             _ => None,
         }
     }
