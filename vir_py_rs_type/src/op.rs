@@ -1,13 +1,8 @@
-use crate::base::{Value, ValueContainer, ValueKind, Downcast};
-use crate::builtin::{VirPyFloat, VirPyInt};
+use crate::base::Value;
 use bumpalo::Bump;
 
-
-type OpFn = for<'ctx> fn(
-    lhs: Value<'ctx>,
-    rhs: Value<'ctx>,
-    arena: &'ctx Bump,
-) -> Option<Value<'ctx>>;
+type OpFn =
+    for<'ctx> fn(lhs: Value<'ctx>, rhs: Value<'ctx>, arena: &'ctx Bump) -> Option<Value<'ctx>>;
 
 #[macro_export]
 macro_rules! __op_register {
@@ -27,7 +22,10 @@ macro_rules! __op_register {
                 let lhs_val = <$lhs_type as $crate::base::Downcast>::from_value(lhs)?;
                 let rhs_val = <$rhs_type as $crate::base::Downcast>::from_value(rhs)?;
                 let result = $func(lhs_val.clone(), rhs_val.clone());
-                Some($crate::base::ValueContainer::new($output_wrapper(result), arena))
+                Some($crate::base::ValueContainer::new(
+                    $output_wrapper(result),
+                    arena,
+                ))
             }
 
             ::inventory::submit! {
@@ -65,8 +63,6 @@ macro_rules! __op_create {
         }
     };
 }
-
-
 
 __op_create!(add, Add, +);
 __op_create!(sub, Sub, -);

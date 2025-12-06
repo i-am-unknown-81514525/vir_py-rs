@@ -1,5 +1,4 @@
-
-pub enum SandboxExecutionError{
+pub enum SandboxExecutionError {
     TimeoutError,
-    ReferenceNotExistError(String)
+    ReferenceNotExistError(String),
 }

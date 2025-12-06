@@ -1,17 +1,29 @@
-use std::collections::HashMap;
+use crate::base::{Downcast, Value, ValueKind};
 use bumpalo::Bump;
-use crate::base::{Value, Downcast, ValueKind};
-use std::ops::Add;
-use std::rc::Rc;
 use std::cell::RefCell;
+use std::collections::HashMap;
+use std::ops::{Add, Div, Mul, Sub};
+use std::rc::Rc;
 
 #[derive(Debug, Clone, Copy)]
-pub struct VirPyInt { pub value: i64 }
-impl VirPyInt { pub fn new(value: i64) -> Self { Self { value } } }
+pub struct VirPyInt {
+    pub value: i64,
+}
+impl VirPyInt {
+    pub fn new(value: i64) -> Self {
+        Self { value }
+    }
+}
 
 #[derive(Debug, Clone, Copy)]
-pub struct VirPyFloat { pub value: f64 }
-impl VirPyFloat { pub fn new(value: f64) -> Self { Self { value } } }
+pub struct VirPyFloat {
+    pub value: f64,
+}
+impl VirPyFloat {
+    pub fn new(value: f64) -> Self {
+        Self { value }
+    }
+}
 
 #[derive(Debug, Clone)]
 pub struct Mapping<'ctx> {
@@ -26,7 +38,9 @@ pub struct VirPyObject<'ctx> {
 impl<'ctx> VirPyObject<'ctx> {
     pub fn new() -> Self {
         Self {
-            mapping: Rc::new(RefCell::new(Mapping { mapping: HashMap::new() })),
+            mapping: Rc::new(RefCell::new(Mapping {
+                mapping: HashMap::new(),
+            })),
         }
     }
     pub fn get(&self, key: &str) -> Option<Rc<RefCell<Value<'ctx>>>> {
@@ -55,10 +69,93 @@ impl<'ctx> Downcast<'ctx> for VirPyFloat {
     }
 }
 
-impl Add for VirPyInt { type Output = Self; fn add(self, rhs: Self) -> Self { Self::new(self.value + rhs.value) } }
-impl Add for VirPyFloat { type Output = Self; fn add(self, rhs: Self) -> Self { Self::new(self.value + rhs.value) } }
-
+impl Add for VirPyInt {
+    type Output = Self;
+    fn add(self, rhs: Self) -> Self {
+        Self::new(self.value + rhs.value)
+    }
+}
+impl Add for VirPyFloat {
+    type Output = Self;
+    fn add(self, rhs: Self) -> Self {
+        Self::new(self.value + rhs.value)
+    }
+}
+impl Add<VirPyInt> for VirPyFloat {
+    type Output = Self;
+    fn add(self, rhs: VirPyInt) -> Self {
+        Self::new(self.value + (rhs.value as f64))
+    }
+}
+impl Add<VirPyFloat> for VirPyInt {
+    type Output = VirPyFloat;
+    fn add(self, rhs: VirPyFloat) -> Self::Output {
+        VirPyFloat::new(self.value as f64 + rhs.value)
+    }
+}
 
 register_op_add!(VirPyInt, VirPyInt, ValueKind::Int);
 register_op_add!(VirPyFloat, VirPyFloat, ValueKind::Float);
+register_op_add!(VirPyInt, VirPyFloat, ValueKind::Float);
+register_op_add!(VirPyFloat, VirPyInt, ValueKind::Float);
 
+impl Sub for VirPyInt {
+    type Output = Self;
+    fn sub(self, rhs: Self) -> Self {
+        Self::new(self.value - rhs.value)
+    }
+}
+impl Sub for VirPyFloat {
+    type Output = Self;
+    fn sub(self, rhs: Self) -> Self {
+        Self::new(self.value - rhs.value)
+    }
+}
+impl Sub<VirPyInt> for VirPyFloat {
+    type Output = Self;
+    fn sub(self, rhs: VirPyInt) -> Self {
+        Self::new(self.value - (rhs.value as f64))
+    }
+}
+impl Sub<VirPyFloat> for VirPyInt {
+    type Output = VirPyFloat;
+    fn sub(self, rhs: VirPyFloat) -> Self::Output {
+        VirPyFloat::new(self.value as f64 - rhs.value)
+    }
+}
+
+register_op_sub!(VirPyInt, VirPyInt, ValueKind::Int);
+register_op_sub!(VirPyFloat, VirPyFloat, ValueKind::Float);
+register_op_sub!(VirPyInt, VirPyFloat, ValueKind::Float);
+register_op_sub!(VirPyFloat, VirPyInt, ValueKind::Float);
+
+
+impl Mul for VirPyInt {
+    type Output = Self;
+    fn mul(self, rhs: Self) -> Self {
+        Self::new(self.value * rhs.value)
+    }
+}
+impl Mul for VirPyFloat {
+    type Output = Self;
+    fn mul(self, rhs: Self) -> Self {
+        Self::new(self.value * rhs.value)
+    }
+}
+impl Mul<VirPyInt> for VirPyFloat {
+    type Output = Self;
+    fn mul(self, rhs: VirPyInt) -> Self {
+        Self::new(self.value * (rhs.value as f64))
+    }
+}
+impl Mul<VirPyFloat> for VirPyInt {
+    type Output = VirPyFloat;
+    fn mul(self, rhs: VirPyFloat) -> Self::Output {
+        VirPyFloat::new(self.value as f64 * rhs.value)
+    }
+}
+
+register_op_mul!(VirPyInt, VirPyInt, ValueKind::Int);
+register_op_mul!(VirPyFloat, VirPyFloat, ValueKind::Float);
+register_op_mul!(VirPyInt, VirPyFloat, ValueKind::Float);
+register_op_mul!(VirPyFloat, VirPyInt, ValueKind::Float);

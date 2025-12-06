@@ -1,10 +1,9 @@
-use std::cell::RefCell;
-use std::ops::Deref;
-use std::rc::Rc;
-use bumpalo::Bump;
 use crate::base::Value;
 use crate::builtin::Mapping;
 use crate::error::SandboxExecutionError;
+use bumpalo::Bump;
+use std::cell::RefCell;
+use std::rc::Rc;
 
 pub type Result<T> = core::result::Result<T, SandboxExecutionError>;
 
@@ -12,25 +11,29 @@ pub type Result<T> = core::result::Result<T, SandboxExecutionError>;
 pub struct ExecutionContext<'ctx> {
     pub arena: Rc<RefCell<Bump>>,
     pub ttl: i64,
-    pub mapping: Vec<Rc<RefCell<Mapping<'ctx>>>> // Top layer ([0]): most local scope
+    pub mapping: Vec<Rc<RefCell<Mapping<'ctx>>>>, // Top layer ([0]): most local scope
 }
 
 impl<'ctx> ExecutionContext<'ctx> {
-    pub fn new(arena: Rc<RefCell<Bump>>, ttl: i64, mapping: Vec<Rc<RefCell<Mapping<'ctx>>>>) -> Self {
+    pub fn new(
+        arena: Rc<RefCell<Bump>>,
+        ttl: i64,
+        mapping: Vec<Rc<RefCell<Mapping<'ctx>>>>,
+    ) -> Self {
         Self {
             arena,
             ttl,
-            mapping
+            mapping,
         }
     }
-    
+
     pub fn consume_one(&mut self) -> Result<()> {
         self.consume(1)
     }
-    
+
     pub fn consume(&mut self, amount: i64) -> Result<()> {
         if amount > self.ttl {
-            return Err(SandboxExecutionError::TimeoutError)
+            return Err(SandboxExecutionError::TimeoutError);
         }
         self.ttl -= amount;
         Ok(())
@@ -45,8 +48,9 @@ impl<'ctx> ExecutionContext<'ctx> {
         }
         match r {
             Some(v) => Ok(v),
-            None => Err(SandboxExecutionError::ReferenceNotExistError(name.to_string()))
+            None => Err(SandboxExecutionError::ReferenceNotExistError(
+                name.to_string(),
+            )),
         }
     }
 }
-

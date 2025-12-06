@@ -1,6 +1,6 @@
+use crate::builtin::{VirPyFloat, VirPyInt, VirPyObject};
 use bumpalo::Bump;
 use std::fmt::Debug;
-use crate::builtin::{VirPyFloat, VirPyInt, VirPyObject};
 
 pub type Value<'ctx> = &'ctx ValueContainer<'ctx>;
 
