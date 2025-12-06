@@ -1,12 +1,19 @@
-use crate::base::ValueContainer;
+use crate::base::{ValueContainer, ValueKind};
 use crate::exec_ctx::{ExecutionContext, Result};
-use proc_macro2::Span;
 use std::cell::RefCell;
 use std::rc::Rc;
+use crate::builtin::{VirPyFloat, VirPyInt};
+
+#[derive(Debug, Clone, Copy)]
+pub struct Span {
+    pub row: u64,
+    pub col: u64,
+    pub length: u64,
+}
 
 pub trait ASTNode {
-    type Output;
-    fn eval(&self, ctx: Rc<RefCell<ExecutionContext>>) -> Result<Self::Output>;
+    type Output<'ctx>; // = ValueKind<'ctx>; // Oh cool that this is a unstable feature?
+    fn eval<'ctx>(&self, ctx: Rc<RefCell<ExecutionContext<'ctx>>>) -> Result<Self::Output<'ctx>>;
 
     fn get_callsite(&self) -> Option<Span>;
 }
@@ -22,20 +29,21 @@ where
 
 pub struct Module {
     pub body: Vec<Node<Stmt>>,
+    pub span: Option<Span>
 }
 
 impl ASTNode for Module {
-    type Output = ();
-    fn eval(&self, ctx: Rc<RefCell<ExecutionContext>>) -> Result<()> {
+    type Output<'ctx> = ValueKind<'ctx>;
+    fn eval<'ctx>(&self, ctx: Rc<RefCell<ExecutionContext<'ctx>>>) -> Result<ValueKind<'ctx>> {
         for stmt in self.body.clone() {
             stmt.kind.eval(ctx.clone())?;
             ctx.borrow_mut().consume_one()?;
         }
-        Ok(())
+        Ok(ValueKind::None)
     }
 
     fn get_callsite(&self) -> Option<Span> {
-        todo!()
+        self.span
     }
 }
 
@@ -52,30 +60,35 @@ pub enum Expr {
         op: UaryOperator,
         operand: Box<Node<Expr>>,
     },
-    Call {
-        function: Box<Node<Expr>>,
-        args: Vec<Node<Expr>>,
-    },
-    Attribute {
-        value: Box<Node<Expr>>,
-        attr: String,
-    },
-    Subscript {
-        value: Box<Node<Expr>>,
-        slice: Box<Node<Expr>>,
-    },
-    Range {
-        lower: Option<i64>,
-        upper: Option<i64>,
-        step: Option<i64>,
-    },
+    // Call {
+    //     function: Box<Node<Expr>>,
+    //     args: Vec<Node<Expr>>,
+    // },
+    // Attribute {
+    //     value: Box<Node<Expr>>,
+    //     attr: String,
+    // },
+    // Subscript {
+    //     value: Box<Node<Expr>>,
+    //     slice: Box<Node<Expr>>,
+    // },
+    // Range {
+    //     lower: Option<i64>,
+    //     upper: Option<i64>,
+    //     step: Option<i64>,
+    // },
 }
 
 impl ASTNode for Expr {
-    type Output = ();
+    type Output<'ctx> = ValueKind<'ctx>;
 
-    fn eval(&self, ctx: Rc<RefCell<ExecutionContext>>) -> Result<Self::Output> {
-        todo!()
+    fn eval<'ctx>(&self, ctx: Rc<RefCell<ExecutionContext<'ctx>>>) -> Result<Self::Output<'ctx>> {
+        ctx.borrow_mut().consume_one();
+        match self {
+            Expr::Literal(l) => l.eval(ctx),
+            Expr::Variable(v) => Ok(ctx.borrow().get(v)?.borrow().kind.clone()),
+            _ => todo!()
+        }
     }
 
     fn get_callsite(&self) -> Option<Span> {
@@ -93,10 +106,16 @@ pub enum Literal {
 }
 
 impl ASTNode for Literal {
-    type Output = ();
+    type Output<'ctx> = ValueKind<'ctx>;
 
-    fn eval(&self, ctx: Rc<RefCell<ExecutionContext>>) -> Result<Self::Output> {
-        todo!()
+    fn eval<'ctx>(&self, ctx: Rc<RefCell<ExecutionContext<'ctx>>>) -> Result<Self::Output<'ctx>> {
+        match self {
+            Literal::Bool(v) => Ok(ValueKind::Bool(*v)),
+            Literal::None => Ok(ValueKind::None),
+            Literal::Int(v) => Ok(ValueKind::Int(VirPyInt::new(*v))),
+            Literal::Float(v) => Ok(ValueKind::Float(VirPyFloat::new(*v))),
+            Literal::String(v) => Ok(ValueKind::String(v.clone())),
+        }
     }
 
     fn get_callsite(&self) -> Option<Span> {
@@ -110,7 +129,6 @@ pub enum BinaryOperator {
     Subtract,
     Multiply,
     Divide,
-    Pow,
     And,
     Or,
     Xor,
@@ -172,9 +190,9 @@ pub enum Stmt {
 }
 
 impl ASTNode for Stmt {
-    type Output = ();
+    type Output<'ctx> = ();
 
-    fn eval(&self, ctx: Rc<RefCell<ExecutionContext>>) -> Result<Self::Output> {
+    fn eval<'ctx>(&self, ctx: Rc<RefCell<ExecutionContext<'ctx>>>) -> Result<Self::Output<'ctx>> {
         todo!()
     }
 
