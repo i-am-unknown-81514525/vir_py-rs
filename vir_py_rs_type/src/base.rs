@@ -1,7 +1,7 @@
 use crate::builtin::{VirPyFloat, VirPyInt, VirPyObject};
+use crate::error::SandboxExecutionError;
 use bumpalo::Bump;
 use std::fmt::Debug;
-use crate::error::SandboxExecutionError;
 
 pub type Value<'ctx> = &'ctx ValueContainer<'ctx>;
 
@@ -13,7 +13,7 @@ pub enum ValueKind<'ctx> {
     ErrorWrapped(SandboxExecutionError),
     Bool(bool),
     String(String),
-    None
+    None,
 }
 
 pub trait Downcast<'ctx>: Sized {
@@ -78,7 +78,7 @@ impl<'ctx> ValueContainer<'ctx> {
             ValueKind::ErrorWrapped(e) => ValueKind::ErrorWrapped(e.clone()),
             ValueKind::Bool(b) => ValueKind::Bool(b.clone()),
             ValueKind::String(s) => ValueKind::String(s.clone()),
-            ValueKind::None => ValueKind::None
+            ValueKind::None => ValueKind::None,
         };
         ValueContainer::new(new_kind, arena)
     }
@@ -124,7 +124,7 @@ impl<'ctx> ValueContainer<'ctx> {
             _ => None,
         }
     }
-    
+
     pub fn as_none(&self) -> Option<&()> {
         match &self.kind {
             ValueKind::None => Some(&()),

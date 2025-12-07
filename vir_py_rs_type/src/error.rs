@@ -15,7 +15,7 @@ pub enum SandboxExecutionError {
     ReferenceNotExistError(String),
     DivideByZeroError,
     GenericPanicRewindError,
-    UndefinedOperatorMethodError
+    UndefinedOperatorMethodError,
 }
 
 pub type Result<T> = ::core::result::Result<T, SandboxExecutionError>;

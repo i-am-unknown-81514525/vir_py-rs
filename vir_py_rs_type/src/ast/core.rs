@@ -1,8 +1,8 @@
 use crate::base::{ValueContainer, ValueKind};
+use crate::builtin::{VirPyFloat, VirPyInt};
 use crate::exec_ctx::{ExecutionContext, Result};
 use std::cell::RefCell;
 use std::rc::Rc;
-use crate::builtin::{VirPyFloat, VirPyInt};
 
 #[derive(Debug, Clone, Copy)]
 pub struct Span {
@@ -29,7 +29,7 @@ where
 
 pub struct Module {
     pub body: Vec<Node<Stmt>>,
-    pub span: Option<Span>
+    pub span: Option<Span>,
 }
 
 impl ASTNode for Module {
@@ -83,11 +83,11 @@ impl ASTNode for Expr {
     type Output<'ctx> = ValueKind<'ctx>;
 
     fn eval<'ctx>(&self, ctx: Rc<RefCell<ExecutionContext<'ctx>>>) -> Result<Self::Output<'ctx>> {
-        ctx.borrow_mut().consume_one();
+        ctx.borrow_mut().consume_one()?;
         match self {
             Expr::Literal(l) => l.eval(ctx),
             Expr::Variable(v) => Ok(ctx.borrow().get(v)?.borrow().kind.clone()),
-            _ => todo!()
+            _ => todo!(),
         }
     }
 

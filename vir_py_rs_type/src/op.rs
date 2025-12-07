@@ -4,8 +4,7 @@ use bumpalo::Bump;
 type BinaryOpFn =
     for<'ctx> fn(lhs: Value<'ctx>, rhs: Value<'ctx>, arena: &'ctx Bump) -> Option<Value<'ctx>>;
 
-type UnaryOpFn =
-    for<'ctx> fn(rhs: Value<'ctx>, arena: &'ctx Bump) -> Option<Value<'ctx>>;
+type UnaryOpFn = for<'ctx> fn(rhs: Value<'ctx>, arena: &'ctx Bump) -> Option<Value<'ctx>>;
 
 #[macro_export]
 macro_rules! __binary_op_register {
@@ -25,18 +24,14 @@ macro_rules! __binary_op_register {
                 let lhs_val = <$lhs_type as $crate::base::Downcast>::from_value(lhs)?;
                 let rhs_val = <$rhs_type as $crate::base::Downcast>::from_value(rhs)?;
                 match $func(lhs_val.clone(), rhs_val.clone()) {
-                    Ok(result) => {
-                        Some($crate::base::ValueContainer::new(
-                            $output_wrapper(result),
-                            arena,
-                        ))
-                    }
-                    Err(err) => {
-                        Some($crate::base::ValueContainer::new(
-                            $crate::base::ValueKind::ErrorWrapped(err),
-                            arena,
-                        ))
-                    }
+                    Ok(result) => Some($crate::base::ValueContainer::new(
+                        $output_wrapper(result),
+                        arena,
+                    )),
+                    Err(err) => Some($crate::base::ValueContainer::new(
+                        $crate::base::ValueKind::ErrorWrapped(err),
+                        arena,
+                    )),
                 }
             }
 
@@ -76,7 +71,6 @@ macro_rules! __binary_op_create {
     };
 }
 
-
 #[macro_export]
 macro_rules! __unary_op_register {
     (
@@ -92,18 +86,14 @@ macro_rules! __unary_op_register {
             ) -> Option<$crate::base::Value<'ctx>> {
                 let rhs_val = <$rhs_type as $crate::base::Downcast>::from_value(rhs)?;
                 match $func(rhs_val.clone()) {
-                    Ok(result) => {
-                        Some($crate::base::ValueContainer::new(
-                            $output_wrapper(result),
-                            arena,
-                        ))
-                    }
-                    Err(err) => {
-                        Some($crate::base::ValueContainer::new(
-                            $crate::base::ValueKind::ErrorWrapped(err),
-                            arena,
-                        ))
-                    }
+                    Ok(result) => Some($crate::base::ValueContainer::new(
+                        $output_wrapper(result),
+                        arena,
+                    )),
+                    Err(err) => Some($crate::base::ValueContainer::new(
+                        $crate::base::ValueKind::ErrorWrapped(err),
+                        arena,
+                    )),
                 }
             }
 
