@@ -16,6 +16,7 @@ pub enum SandboxExecutionError {
     DivideByZeroError,
     GenericPanicRewindError,
     UndefinedOperatorMethodError,
+    InvalidTypeError,
 }
 
 pub type Result<T> = ::core::result::Result<T, SandboxExecutionError>;

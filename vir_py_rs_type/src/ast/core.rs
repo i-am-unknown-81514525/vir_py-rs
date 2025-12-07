@@ -220,7 +220,7 @@ pub enum UaryOperator {
 pub enum Stmt {
     Expression(Node<Expr>),
     Assign {
-        target: String,
+        target: String, // temp since no a[b] or a.b right now
         value: Node<Expr>,
     },
     If {
@@ -255,7 +255,7 @@ pub enum Stmt {
 }
 
 impl ASTNode for Stmt {
-    type Output<'ctx> = ();
+    type Output<'ctx> = ValueKind<'ctx>;
 
     fn eval<'ctx>(&self, ctx: Rc<RefCell<ExecutionContext<'ctx>>>) -> Result<Self::Output<'ctx>> {
         match self {
@@ -270,9 +270,27 @@ impl ASTNode for Stmt {
                     }
                 )?;
             }
+            Stmt::If { test, body, otherwise } => {
+                let value_kind = test.kind.eval(ctx.clone())?;
+                match (value_kind) {
+                    ValueKind::Bool(true) => {
+                        for stmt in body.clone() {
+                            stmt.kind.eval(ctx.clone())?;
+                            ctx.borrow_mut().consume_one()?;
+                        }
+                    },
+                    ValueKind::Bool(false) | ValueKind::None => {
+                        for stmt in body.clone() {
+                            stmt.kind.eval(ctx.clone())?;
+                            ctx.borrow_mut().consume_one()?;
+                        }
+                    },
+                    _ => return Err(SandboxExecutionError::InvalidTypeError)
+                }
+            }
             _ => todo!()
         };
-        Ok(())
+        Ok(ValueKind::None)
     }
 
     fn get_callsite(&self) -> Option<Span> {
