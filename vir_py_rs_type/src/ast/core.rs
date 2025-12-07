@@ -151,6 +151,8 @@ impl ASTNode for Expr {
                         BinaryOperator::Lte => Ok(err_op_le(lhs, rhs, arena)?.kind.clone()),
                         BinaryOperator::Gt => Ok(err_op_gt(lhs, rhs, arena)?.kind.clone()),
                         BinaryOperator::Gte => Ok(err_op_ge(lhs, rhs, arena)?.kind.clone()),
+                        BinaryOperator::LeftShift => Ok(err_op_bsl(lhs, rhs, arena)?.kind.clone()),
+                        BinaryOperator::RightShift => Ok(err_op_bsr(lhs, rhs, arena)?.kind.clone()),
                     }
                 })
             }
@@ -209,6 +211,8 @@ pub enum BinaryOperator {
     Lte,
     Gt,
     Gte,
+    LeftShift,
+    RightShift
 }
 
 #[derive(Debug, Clone, Copy)]

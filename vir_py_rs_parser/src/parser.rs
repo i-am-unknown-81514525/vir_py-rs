@@ -2,28 +2,28 @@ use crate::tokenizer;
 use vir_py_rs_type::ast::core as final_ast;
 use crate::error::ParseError;
 
+// --- Conversion Layer (Intermediate AST -> Final AST) ---
+
 fn convert_expr(expr: tokenizer::Expr) -> final_ast::Node<final_ast::Expr> {
-    let mut final_expr = final_ast::Expr::from(expr.left);
-
-    for (op, right_atom) in expr.rights {
-        let right_expr = final_ast::Expr::from(right_atom);
-        final_expr = final_ast::Expr::BinaryOp {
-            left: Box::new(final_ast::Node { kind: final_expr, span: None }),
-            op,
-            right: Box::new(final_ast::Node { kind: right_expr, span: None }),
-        };
-    }
-    
-    final_ast::Node { kind: final_expr, span: None }
-}
-
-impl From<tokenizer::Atom> for final_ast::Expr {
-    fn from(atom: tokenizer::Atom) -> Self {
-        match atom {
+    let kind = match expr {
+        tokenizer::Expr::Atom(atom) => match atom {
             tokenizer::Atom::Literal(l) => final_ast::Expr::Literal(l),
             tokenizer::Atom::Variable(v) => final_ast::Expr::Variable(v),
-        }
-    }
+            tokenizer::Atom::Paren(expr_in_paren) => {
+                return convert_expr(*expr_in_paren);
+            }
+        },
+        tokenizer::Expr::Binary(left, op, right) => final_ast::Expr::BinaryOp {
+            left: Box::new(convert_expr(*left)),
+            op,
+            right: Box::new(convert_expr(*right)),
+        },
+        tokenizer::Expr::Unary(op, operand) => final_ast::Expr::UnaryOp {
+            op,
+            operand: Box::new(convert_expr(*operand)),
+        },
+    };
+    final_ast::Node { kind, span: None }
 }
 
 

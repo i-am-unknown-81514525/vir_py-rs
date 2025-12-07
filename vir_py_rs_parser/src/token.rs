@@ -11,14 +11,21 @@ custom_keyword!(is);
 custom_keyword!(del);
 
 custom_punctuation!(StarStar, **);
-custom_punctuation!(PlusAssign, +=);
-custom_punctuation!(MinusAssign, -=);
-custom_punctuation!(StarAssign, *=);
-custom_punctuation!(SlashAssign, /=);
-custom_punctuation!(PercentAssign, %=);
 custom_punctuation!(Eq, ==);
 custom_punctuation!(NotEq, !=);
 custom_punctuation!(Lte, <=);
 custom_punctuation!(Gte, >=);
 custom_punctuation!(LeftShift, <<);
 custom_punctuation!(RightShift, >>);
+
+
+custom_punctuation!(PlusAssign, +=);
+custom_punctuation!(MinusAssign, -=);
+custom_punctuation!(StarAssign, *=);
+custom_punctuation!(SlashAssign, /=);
+custom_punctuation!(PercentAssign, %=);
+custom_punctuation!(LeftShiftAssign, <<=);
+custom_punctuation!(RightShiftAssign, >>=);
+custom_punctuation!(BitshiftAndAssign, &=);
+custom_punctuation!(BitshiftOrAssign, |=);
+custom_punctuation!(BitshiftXorAssign, ^=);
