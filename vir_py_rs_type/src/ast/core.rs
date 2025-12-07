@@ -283,7 +283,7 @@ impl ASTNode for Stmt {
             }
             Stmt::Assign { target, value } => {
                 let value_kind = value.kind.eval(ctx.clone())?;
-                match (&target.kind) {
+                match &target.kind {
                     Expr::Variable(name) => {
                         with_arena(&ctx, |arena| {
                             ctx.borrow_mut()

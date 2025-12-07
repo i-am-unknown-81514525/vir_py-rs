@@ -57,7 +57,7 @@ impl Parse for Stmt {
         }
 
         let fork = input.fork();
-        let expr = fork.parse::<Expr>()?;
+        let _ = fork.parse::<Expr>()?;
 
         if fork.peek(Token![=])
             || fork.peek(token::PlusAssign) || fork.peek(token::MinusAssign)
@@ -128,7 +128,7 @@ fn parse_expr_with_precedence(input: ParseStream, min_bp: u8) -> Result<Expr> {
     };
 
     loop {
-        let (op, l_bp, r_bp) = match peek_infix_op(input) {
+        let (op, _l_bp, r_bp) = match peek_infix_op(input) {
             Some(op_data) if op_data.1 >= min_bp => op_data,
             _ => break,
         };
@@ -222,7 +222,6 @@ fn infix_binding_power(op: &final_ast::BinaryOperator) -> (u8, u8) {
         final_ast::BinaryOperator::LeftShift | final_ast::BinaryOperator::RightShift => (15, 16),
         final_ast::BinaryOperator::Add | final_ast::BinaryOperator::Subtract => (17, 18),
         final_ast::BinaryOperator::Multiply | final_ast::BinaryOperator::Divide | final_ast::BinaryOperator::Modulo => (19, 20),
-        _ => (0, 0),
     }
 }
 
