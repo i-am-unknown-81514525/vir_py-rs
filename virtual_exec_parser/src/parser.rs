@@ -11,6 +11,10 @@ fn convert_stmt(stmt: tokenizer::Stmt) -> Result<final_ast::Node<final_ast::Stmt
                 value: convert_expr(value),
             }
         }
+        tokenizer::Stmt::Scoped(block) => {
+            let body = block.stmts.into_iter().map(convert_stmt).collect::<Result<_, _>>()?;
+            final_ast::Stmt::Scoped(body)
+        }
         tokenizer::Stmt::If { test, body, otherwise } => {
             let final_test = convert_expr(test);
             let final_body = body.stmts.into_iter().map(convert_stmt).collect::<Result<_, _>>()?;
@@ -50,7 +54,7 @@ fn convert_expr(expr: tokenizer::Expr) -> final_ast::Node<final_ast::Expr> {
 }
 
 pub fn parse(source: &str) -> std::result::Result<final_ast::Module, ParseError> {
-    let block: tokenizer::Block = syn::parse_str(source).map_err(ParseError::SynParseError)?;
+    let block: tokenizer::TopLevelBlock = syn::parse_str(source).map_err(ParseError::SynParseError)?;
     let body = block.stmts.into_iter().map(convert_stmt).collect::<Result<_, _>>()?;
     Ok(final_ast::Module { body, span: None })
 }

@@ -10,11 +10,11 @@ use virtual_exec_type::exec_ctx::ExecutionContext;
 
 #[test]
 fn test_simple_assignment_and_expr() {
-    let module = parse!({
+    let module = parse!(
         a = 10;
         a = a + 5;
         a;
-    });
+    );
     let arena_rc = Rc::new(RefCell::new(Bump::new()));
     let mut global_scope = Mapping { mapping: HashMap::new() };
 
@@ -44,14 +44,14 @@ fn test_simple_assignment_and_expr() {
 
 #[test]
 fn test_more() {
-    let module = parse!({
+    let module = parse!(
         a = 10;
         a = a + 5;
         if a == 15 {
             a = 2;
         }
         a;
-    });
+    );
     let arena_rc = Rc::new(RefCell::new(Bump::new()));
     let mut global_scope = Mapping { mapping: HashMap::new() };
 
@@ -81,14 +81,14 @@ fn test_more() {
 
 #[test]
 fn test_timeout() {
-    let module = parse!({
+    let module = parse!(
         a = 10;
         a = a + 5;
         if a == 15 {
             a = 2;
         }
         a;
-    });
+    );
     let arena_rc = Rc::new(RefCell::new(Bump::new()));
     let mut global_scope = Mapping { mapping: HashMap::new() };
 
@@ -115,14 +115,14 @@ fn test_timeout() {
 
 #[test]
 fn test_if_fail_path() {
-    let module = parse!({
+    let module = parse!(
         a = 10;
         a = a + 5;
         if a == 14 {
             a = 2;
         }
         a;
-    });
+    );
     let arena_rc = Rc::new(RefCell::new(Bump::new()));
     let mut global_scope = Mapping { mapping: HashMap::new() };
 

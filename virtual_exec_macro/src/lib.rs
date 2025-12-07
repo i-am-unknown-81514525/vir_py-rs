@@ -2,7 +2,7 @@ use proc_macro2::{Span, TokenStream as TokenStream2};
 use proc_macro::TokenStream;
 use quote::{quote, ToTokens};
 use syn::parse_macro_input;
-use virtual_exec_parser::tokenizer::{Block, Stmt, Expr, Atom};
+use virtual_exec_parser::tokenizer::{Block, Stmt, Expr, Atom, TopLevelBlock};
 use virtual_exec_type::ast::core::{BinaryOperator, UnaryOperator, Literal};
 
 fn literal_to_token(lit: Literal) -> impl ToTokens {
@@ -158,11 +158,20 @@ fn stmt_to_token(stmt: Stmt) -> impl ToTokens {
                     span: None,
                 }
             }
+        },
+        Stmt::Scoped(block) => {
+            let stmts = stmts_to_token(block.stmts);
+            quote! {
+                ::virtual_exec_type::ast::core::Node {
+                    kind: ::virtual_exec_type::ast::core::Stmt::Scoped(#stmts),
+                    span: None,
+                }
+            }
         }
     }
 }
 
-fn block_to_token(v: Block) -> impl ToTokens {
+fn block_to_token(v: TopLevelBlock) -> impl ToTokens {
     let body = stmts_to_token(v.stmts);
     quote! {
         ::virtual_exec_type::ast::core::Module {
@@ -174,7 +183,7 @@ fn block_to_token(v: Block) -> impl ToTokens {
 
 #[proc_macro]
 pub fn parse(input: TokenStream) -> TokenStream {
-    let output = parse_macro_input!(input as Block);
+    let output = parse_macro_input!(input as TopLevelBlock);
     let token_content = block_to_token(output);
     quote! { #token_content }.into()
 }

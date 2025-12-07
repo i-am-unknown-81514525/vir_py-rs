@@ -244,6 +244,7 @@ pub enum Stmt {
         body: Vec<Node<Stmt>>,
         otherwise: Option<Vec<Node<Stmt>>>,
     },
+    Scoped(Vec<Node<Stmt>>)
     // FunctionDef {
     //     name: String,
     //     args: Vec<String>,
@@ -274,6 +275,7 @@ impl ASTNode for Stmt {
     type Output<'ctx> = ValueKind<'ctx>;
 
     fn eval<'ctx>(&self, ctx: Rc<RefCell<ExecutionContext<'ctx>>>) -> Result<Self::Output<'ctx>> {
+        ctx.borrow_mut().consume_one()?;
         match self {
             Stmt::Expression(expr) => {
                 expr.kind.eval(ctx.clone())?;
@@ -316,6 +318,11 @@ impl ASTNode for Stmt {
                         }
                     }
                     _ => return Err(SandboxExecutionError::InvalidTypeError),
+                }
+            },
+            Stmt::Scoped(scoped) => {
+                for stmt in scoped.clone() {
+                    stmt.kind.eval(ctx.clone())?;
                 }
             }
         };

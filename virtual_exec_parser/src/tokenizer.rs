@@ -4,6 +4,21 @@ use syn::{braced, parenthesized, Ident, Lit, Token};
 use virtual_exec_type::ast::core as final_ast;
 
 #[derive(Clone)]
+pub struct TopLevelBlock {
+    pub stmts: Vec<Stmt>,
+}
+
+impl Parse for TopLevelBlock {
+    fn parse(input: ParseStream) -> Result<Self> {
+        let mut stmts = Vec::new();
+        while !input.is_empty() {
+            stmts.push(input.parse()?);
+        }
+        Ok(TopLevelBlock { stmts })
+    }
+}
+
+#[derive(Clone)]
 pub struct Block {
     pub stmts: Vec<Stmt>,
 }
@@ -20,6 +35,7 @@ pub enum Stmt {
         body: Block,
         otherwise: Option<Block>,
     },
+    Scoped(Block)
 }
 
 #[derive(Clone)]
@@ -81,7 +97,13 @@ impl Parse for Stmt {
             
             Ok(Stmt::Assign { target, value: final_value })
 
-        } else {
+        }
+        else if input.peek(syn::token::Brace) {
+            let stmts = input.parse::<Block>()?;
+            input.parse::<Token![;]>()?;
+            Ok(Stmt::Scoped(stmts))
+        }
+        else {
             let expr = input.parse::<Expr>()?;
             input.parse::<Token![;]>()?;
             Ok(Stmt::Expr(expr))
