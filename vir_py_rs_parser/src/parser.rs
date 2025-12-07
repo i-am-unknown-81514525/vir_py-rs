@@ -1,14 +1,8 @@
 use crate::tokenizer;
 use vir_py_rs_type::ast::core as final_ast;
+use crate::error::ParseError;
 
-
-#[derive(Debug)]
-pub enum ConvertError {
-    ParseError(syn::Error),
-    InvalidAssignmentTarget,
-}
-
-fn convert_stmt(stmt: tokenizer::Stmt) -> Result<final_ast::Node<final_ast::Stmt>, ConvertError> {
+fn convert_stmt(stmt: tokenizer::Stmt) -> Result<final_ast::Node<final_ast::Stmt>, ParseError> {
     let kind = match stmt {
         tokenizer::Stmt::Expr(expr) => final_ast::Stmt::Expression(convert_expr(expr)),
         tokenizer::Stmt::Assign { target, value } => {
@@ -55,8 +49,8 @@ fn convert_expr(expr: tokenizer::Expr) -> final_ast::Node<final_ast::Expr> {
     final_ast::Node { kind, span: None }
 }
 
-pub fn parse(source: &str) -> std::result::Result<final_ast::Module, ConvertError> {
-    let block: tokenizer::Block = syn::parse_str(source).map_err(ConvertError::ParseError)?;
+pub fn parse(source: &str) -> std::result::Result<final_ast::Module, ParseError> {
+    let block: tokenizer::Block = syn::parse_str(source).map_err(ParseError::SynParseError)?;
     let body = block.stmts.into_iter().map(convert_stmt).collect::<Result<_, _>>()?;
     Ok(final_ast::Module { body, span: None })
 }

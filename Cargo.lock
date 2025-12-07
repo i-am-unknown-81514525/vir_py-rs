@@ -99,6 +99,7 @@ dependencies = [
  "proc-macro2",
  "quote",
  "syn",
+ "vir_py_rs_parser",
  "vir_py_rs_type",
 ]
 
