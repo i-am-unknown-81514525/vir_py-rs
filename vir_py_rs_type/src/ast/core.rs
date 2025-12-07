@@ -72,6 +72,7 @@ pub enum Expr {
         op: UaryOperator,
         operand: Box<Node<Expr>>,
     },
+    Wrapped(Box<Node<Expr>>),
     // Call {
     //     function: Box<Node<Expr>>,
     //     args: Vec<Node<Expr>>,
@@ -149,7 +150,8 @@ impl ASTNode for Expr {
                         BinaryOperator::Gte => Ok(err_op_ge(lhs, rhs, arena)?.kind.clone()),
                     }
                 })
-            }
+            },
+            Expr::Wrapped(expr) => expr.kind.eval(ctx.clone()),
             _ => todo!()
         }
     }
