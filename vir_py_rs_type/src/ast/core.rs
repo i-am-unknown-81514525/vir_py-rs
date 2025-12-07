@@ -112,6 +112,20 @@ impl ASTNode for Expr {
             },
             Expr::BinaryOp { left, op, right} => {
                 let lhs_kind = left.kind.eval(ctx.clone())?;
+                // Special Case:
+                match (op, &lhs_kind) {
+                    (BinaryOperator::And, ValueKind::Bool(false) | ValueKind::None) => {
+                        return Ok(ValueKind::Bool(false));
+                    }
+                    (BinaryOperator::Or, ValueKind::Bool(true)) => {
+                        return Ok(ValueKind::Bool(true));
+                    }
+                    (BinaryOperator::Or, ValueKind::None | ValueKind::Bool(false)) |
+                    (BinaryOperator::And, ValueKind::Bool(true)) => {
+                        return Ok(right.kind.eval(ctx.clone())?);
+                    }
+                    _ => {}
+                }
                 let rhs_kind = right.kind.eval(ctx.clone())?;
                 with_arena(&ctx, |arena| {
                     let lhs = ValueContainer::new(lhs_kind, arena);
