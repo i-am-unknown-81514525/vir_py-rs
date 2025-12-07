@@ -14,6 +14,14 @@ pub struct ExecutionContext<'ctx> {
     pub mapping: Vec<Rc<RefCell<Mapping<'ctx>>>>, // Top layer ([0]): most local scope
 }
 
+// By implementing RefUnwindSafe, we are asserting that even if a panic
+// occurs during a method call that mutates ExecutionContext through a
+// shared reference, the context is left in a state that won't cause
+// undefined behavior *for the caller*. This is acceptable for our interpreter
+// because the API contract of Module::eval is that if a panic is caught,
+// the entire ExecutionContext must be discarded by the caller.
+impl<'ctx> std::panic::RefUnwindSafe for ExecutionContext<'ctx> {}
+
 impl<'ctx> ExecutionContext<'ctx> {
     pub fn new(
         arena: Rc<RefCell<Bump>>,

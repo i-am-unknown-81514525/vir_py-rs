@@ -4,6 +4,7 @@ use crate::error::SandboxExecutionError;
 use crate::exec_ctx::{ExecutionContext, Result};
 use crate::op::*;
 use std::cell::{Ref, RefCell};
+use std::panic::catch_unwind;
 use std::rc::Rc;
 
 #[derive(Debug, Clone, Copy)]
@@ -28,11 +29,10 @@ where
         let ctx_borrow = ctx.borrow();
         ctx_borrow.arena.clone()
     };
-
     let arena_borrow: Ref<bumpalo::Bump> = arena_rc.borrow();
     let arena_ref: &bumpalo::Bump = &arena_borrow;
     let arena_ref_ctx: &'ctx bumpalo::Bump = unsafe { std::mem::transmute(arena_ref) };
-
+    
     f(arena_ref_ctx)
 }
 
@@ -53,11 +53,19 @@ pub struct Module {
 impl ASTNode for Module {
     type Output<'ctx> = ValueKind<'ctx>;
     fn eval<'ctx>(&self, ctx: Rc<RefCell<ExecutionContext<'ctx>>>) -> Result<ValueKind<'ctx>> {
-        for stmt in self.body.clone() {
-            stmt.kind.eval(ctx.clone())?;
-            ctx.borrow_mut().consume_one()?;
+        let result = catch_unwind(std::panic::AssertUnwindSafe(|| {
+            for stmt in self.body.clone() {
+                stmt.kind.eval(ctx.clone())?;
+                ctx.borrow_mut().consume_one()?;
+            }
+            Ok(ValueKind::None)
+        }));
+
+        match result {
+            Ok(Ok(value)) => Ok(value),
+            Ok(Err(e)) => Err(e),
+            Err(_) => Err(SandboxExecutionError::GenericPanicRewindError),
         }
-        Ok(ValueKind::None)
     }
 
     fn get_callsite(&self) -> Option<Span> {
