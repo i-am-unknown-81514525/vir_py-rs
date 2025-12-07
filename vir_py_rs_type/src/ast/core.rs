@@ -1,7 +1,8 @@
 use crate::base::{ValueContainer, ValueKind};
 use crate::builtin::{VirPyFloat, VirPyInt};
 use crate::exec_ctx::{ExecutionContext, Result};
-use std::cell::RefCell;
+use crate::op::*;
+use std::cell::{Ref, RefCell};
 use std::rc::Rc;
 
 #[derive(Debug, Clone, Copy)]
@@ -13,9 +14,20 @@ pub struct Span {
 
 pub trait ASTNode {
     type Output<'ctx>; // = ValueKind<'ctx>; // Oh cool that this is a unstable feature?
-    fn eval<'ctx>(&self, ctx: Rc<RefCell<ExecutionContext<'ctx>>>) -> Result<Self::Output<'ctx>>;
+    fn eval<'ctx>(&self, ctx:Rc<RefCell<ExecutionContext<'ctx>>>) -> Result<Self::Output<'ctx>>;
 
     fn get_callsite(&self) -> Option<Span>;
+}
+
+fn with_arena<'ctx, F, R>(ctx: &Rc<RefCell<ExecutionContext<'ctx>>>, f: F) -> R
+where
+    F: FnOnce(&'ctx bumpalo::Bump) -> R,
+{
+    let ctx_borrow: Ref<ExecutionContext<'ctx>> = ctx.borrow();
+    let arena_borrow: Ref<bumpalo::Bump> = ctx_borrow.arena.borrow();
+    let arena_ref: &bumpalo::Bump = &arena_borrow;
+    let arena_ref_ctx: &'ctx bumpalo::Bump = unsafe { std::mem::transmute(arena_ref) };
+    f(arena_ref_ctx)
 }
 
 #[derive(Debug, Clone)]
@@ -82,12 +94,23 @@ pub enum Expr {
 impl ASTNode for Expr {
     type Output<'ctx> = ValueKind<'ctx>;
 
-    fn eval<'ctx>(&self, ctx: Rc<RefCell<ExecutionContext<'ctx>>>) -> Result<Self::Output<'ctx>> {
+    fn eval<'ctx>(&self, ctx:Rc<RefCell<ExecutionContext<'ctx>>>) -> Result<Self::Output<'ctx>> {
         ctx.borrow_mut().consume_one()?;
         match self {
             Expr::Literal(l) => l.eval(ctx),
             Expr::Variable(v) => Ok(ctx.borrow().get(v)?.borrow().kind.clone()),
-            _ => todo!(),
+            Expr::UnaryOp { op, operand } => {
+                let rhs_kind = operand.kind.eval(ctx.clone())?;
+                with_arena(&ctx, |arena| {
+                    let rhs = ValueContainer::new(rhs_kind, arena);
+                    match op {
+                        UaryOperator::Negative => Ok(err_op_neg(rhs, arena)?.kind.clone()),
+                        UaryOperator::Positive => Ok(err_op_pos(rhs, arena)?.kind.clone()),
+                        UaryOperator::Not => Ok(err_op_not(rhs, arena)?.kind.clone()),
+                    }
+                })
+            }
+            _ => todo!()
         }
     }
 
