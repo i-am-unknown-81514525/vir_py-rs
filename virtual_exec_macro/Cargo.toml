@@ -1,5 +1,5 @@
 [package]
-name = "vir_py_rs_macro"
+name = "virtual_exec_macro"
 version = "0.1.0"
 edition = "2024"
 
@@ -8,8 +8,8 @@ proc-macro = true
 
 [dependencies]
 syn = { version = "2.0.106", features = ["full"] }
-vir_py_rs_type = { path = "../vir_py_rs_type" }
-vir_py_rs_parser = { path = "../vir_py_rs_parser" }
+virtual_exec_type = { path = "../virtual_exec_type" }
+virtual_exec_parser = { path = "../virtual_exec_parser" }
 quote = "1.0"
 proc-macro2 = "1.0"
 

@@ -1,7 +1,7 @@
 use crate::token;
 use syn::parse::{Parse, ParseStream, Result};
 use syn::{braced, parenthesized, Ident, Lit, Token};
-use vir_py_rs_type::ast::core as final_ast;
+use virtual_exec_type::ast::core as final_ast;
 
 #[derive(Clone)]
 pub struct Block {

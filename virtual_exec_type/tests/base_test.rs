@@ -1,6 +1,6 @@
 use bumpalo::Bump;
-use vir_py_rs_type::base::{ValueContainer, ValueKind};
-use vir_py_rs_type::builtin::VirPyInt;
+use virtual_exec_type::base::{ValueContainer, ValueKind};
+use virtual_exec_type::builtin::VirPyInt;
 
 #[test]
 fn test_value_creation_and_downcast() {

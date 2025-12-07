@@ -2,12 +2,12 @@ use std::cell::RefCell;
 use std::collections::HashMap;
 use std::rc::Rc;
 use bumpalo::Bump;
-use vir_py_rs_parser::error::ParseError;
-use vir_py_rs_parser::parser;
-use vir_py_rs_type::ast::core::ASTNode;
-use vir_py_rs_type::builtin::Mapping;
-use vir_py_rs_type::exec_ctx::{ExecutionContext, RsValue};
-use vir_py_rs_type::error::SandboxExecutionError;
+use virtual_exec_parser::error::ParseError;
+use virtual_exec_parser::parser;
+use virtual_exec_type::ast::core::ASTNode;
+use virtual_exec_type::builtin::Mapping;
+use virtual_exec_type::exec_ctx::{ExecutionContext, RsValue};
+use virtual_exec_type::error::SandboxExecutionError;
 
 /// The unified error type for the `vir_py-rs` library.
 #[derive(Debug)]

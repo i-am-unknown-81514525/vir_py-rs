@@ -2,11 +2,11 @@ use std::cell::{RefCell, Ref};
 use std::collections::HashMap;
 use std::rc::Rc;
 use bumpalo::Bump;
-use vir_py_rs_macro::parse;
-use vir_py_rs_type::ast::core::ASTNode;
-use vir_py_rs_type::base::{Value, ValueContainer, ValueKind};
-use vir_py_rs_type::builtin::Mapping;
-use vir_py_rs_type::exec_ctx::ExecutionContext;
+use virtual_exec_macro::parse;
+use virtual_exec_type::ast::core::ASTNode;
+use virtual_exec_type::base::{Value, ValueContainer, ValueKind};
+use virtual_exec_type::builtin::Mapping;
+use virtual_exec_type::exec_ctx::ExecutionContext;
 
 #[test]
 fn test_simple_assignment_and_expr() {
@@ -108,7 +108,7 @@ fn test_timeout() {
 
     assert!((&result).is_err(), "Evaluation successful when TimeoutError is expected: {:?}", result.ok());
     assert!(match (result.clone().err()) {
-        Some(vir_py_rs_type::error::SandboxExecutionError::TimeoutError) => true,
+        Some(virtual_exec_type::error::SandboxExecutionError::TimeoutError) => true,
         _ => false
     }, "Expected TimeoutError, but got {:?}", result.err());
 }

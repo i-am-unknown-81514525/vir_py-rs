@@ -1,5 +1,5 @@
 use crate::tokenizer;
-use vir_py_rs_type::ast::core as final_ast;
+use virtual_exec_type::ast::core as final_ast;
 use crate::error::ParseError;
 
 fn convert_stmt(stmt: tokenizer::Stmt) -> Result<final_ast::Node<final_ast::Stmt>, ParseError> {

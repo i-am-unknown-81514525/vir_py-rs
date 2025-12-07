@@ -1,16 +1,16 @@
 [package]
-name = "vir_py-rs"
+name = "virtual_exec"
 version = "0.1.0"
 edition = "2024"
 
 [dependencies]
-vir_py_rs_type = { path = "vir_py_rs_type"}
-vir_py_rs_parser = { path = "vir_py_rs_parser"}
+virtual_exec_type = { path = "virtual_exec_type"}
+virtual_exec_parser = { path = "virtual_exec_parser"}
 bumpalo = "3.19.0"
 
 [workspace]
 members = [
-    "vir_py_rs_type",
-    "vir_py_rs_macro",
-    "vir_py_rs_parser",
+    "virtual_exec_type",
+    "virtual_exec_macro",
+    "virtual_exec_parser",
 ]
