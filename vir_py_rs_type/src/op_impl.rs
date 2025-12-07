@@ -207,6 +207,9 @@ register_op_bor!(
     ValueKind::Int,
     |a: VirPyInt, b: VirPyInt| Ok(VirPyInt::new(a.value | b.value))
 );
+register_op_and!(bool, bool, ValueKind::Bool, |a: bool, b:bool| Ok(a && b));
+register_op_or!(bool, bool, ValueKind::Bool, |a: bool, b:bool| Ok(a || b));
+register_op_bxor!(bool, bool, ValueKind::Bool, |a: bool, b:bool| Ok(a ^ b));
 // register_op_bsl!(VirPyFloat, VirPyInt, ValueKind::Float, |a: VirPyFloat, b: VirPyInt| Ok(VirPyFloat::new(a.value << b.value)));
 // register_op_bsr!(VirPyFloat, VirPyInt, ValueKind::Float, |a: VirPyFloat, b: VirPyInt| Ok(VirPyFloat::new(a.value >> b.value)));
 // Best attempt would be using i64::pow, but overflow would be a big issue

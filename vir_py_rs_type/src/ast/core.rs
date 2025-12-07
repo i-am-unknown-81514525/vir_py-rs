@@ -109,6 +109,32 @@ impl ASTNode for Expr {
                         UaryOperator::Not => Ok(err_op_not(rhs, arena)?.kind.clone()),
                     }
                 })
+            },
+            Expr::BinaryOp { left, op, right} => {
+                let lhs_kind = left.kind.eval(ctx.clone())?;
+                let rhs_kind = right.kind.eval(ctx.clone())?;
+                with_arena(&ctx, |arena| {
+                    let lhs = ValueContainer::new(lhs_kind, arena);
+                    let rhs = ValueContainer::new(rhs_kind, arena);
+                    match op {
+                        BinaryOperator::Add => Ok(err_op_add(lhs, rhs, arena)?.kind.clone()),
+                        BinaryOperator::Subtract => Ok(err_op_sub(lhs, rhs, arena)?.kind.clone()),
+                        BinaryOperator::Multiply => Ok(err_op_mul(lhs, rhs, arena)?.kind.clone()),
+                        BinaryOperator::Divide => Ok(err_op_div(lhs, rhs, arena)?.kind.clone()),
+                        BinaryOperator::And => Ok(err_op_and(lhs, rhs, arena)?.kind.clone()),
+                        BinaryOperator::Or => Ok(err_op_or(lhs, rhs, arena)?.kind.clone()),
+                        BinaryOperator::Xor => Ok(err_op_bxor(lhs, rhs, arena)?.kind.clone()),
+                        BinaryOperator::Modulo => Ok(err_op_moduls(lhs, rhs, arena)?.kind.clone()),
+                        BinaryOperator::BitwiseAnd => Ok(err_op_band(lhs, rhs, arena)?.kind.clone()),
+                        BinaryOperator::BitwiseOr => Ok(err_op_bor(lhs, rhs, arena)?.kind.clone()),
+                        BinaryOperator::Eq => Ok(err_op_eq(lhs, rhs, arena)?.kind.clone()),
+                        BinaryOperator::NotEq => Ok(err_op_ne(lhs, rhs, arena)?.kind.clone()),
+                        BinaryOperator::Lt => Ok(err_op_lt(lhs, rhs, arena)?.kind.clone()),
+                        BinaryOperator::Lte => Ok(err_op_le(lhs, rhs, arena)?.kind.clone()),
+                        BinaryOperator::Gt => Ok(err_op_gt(lhs, rhs, arena)?.kind.clone()),
+                        BinaryOperator::Gte => Ok(err_op_ge(lhs, rhs, arena)?.kind.clone()),
+                    }
+                })
             }
             _ => todo!()
         }
@@ -158,7 +184,6 @@ pub enum BinaryOperator {
     Modulo,
     BitwiseAnd,
     BitwiseOr,
-    BitwiseXor,
     Eq,
     NotEq,
     Lt,

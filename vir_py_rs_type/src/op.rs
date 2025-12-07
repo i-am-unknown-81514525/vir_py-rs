@@ -182,6 +182,8 @@ __binary_op_create!(bsr, Bsr, >>);
 __binary_op_create!(band, BitwiseAnd, &);
 __binary_op_create!(bor, BitwiseOr, |);
 __binary_op_create!(bxor, BitwiseXor, ^);
+__binary_op_create!(and, And, &&);
+__binary_op_create!(or, Or, ||);
 __unary_op_create!(not, Not, !);
 __unary_op_create!(pos, Pos, +);
 __unary_op_create!(neg, Neg, -);
