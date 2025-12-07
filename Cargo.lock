@@ -96,6 +96,7 @@ version = "0.1.0"
 name = "vir_py_rs_macro"
 version = "0.1.0"
 dependencies = [
+ "bumpalo",
  "proc-macro2",
  "quote",
  "syn",

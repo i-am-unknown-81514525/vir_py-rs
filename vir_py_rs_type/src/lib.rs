@@ -5,6 +5,6 @@ pub mod ast;
 pub mod base;
 pub mod builtin;
 mod error;
-mod exec_ctx;
+pub mod exec_ctx;
 pub mod export;
 mod op_impl;

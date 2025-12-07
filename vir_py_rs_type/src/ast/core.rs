@@ -24,10 +24,15 @@ fn with_arena<'ctx, F, R>(ctx: &Rc<RefCell<ExecutionContext<'ctx>>>, f: F) -> R
 where
     F: FnOnce(&'ctx bumpalo::Bump) -> R,
 {
-    let ctx_borrow: Ref<ExecutionContext<'ctx>> = ctx.borrow();
-    let arena_borrow: Ref<bumpalo::Bump> = ctx_borrow.arena.borrow();
+    let arena_rc = {
+        let ctx_borrow = ctx.borrow();
+        ctx_borrow.arena.clone()
+    };
+
+    let arena_borrow: Ref<bumpalo::Bump> = arena_rc.borrow();
     let arena_ref: &bumpalo::Bump = &arena_borrow;
     let arena_ref_ctx: &'ctx bumpalo::Bump = unsafe { std::mem::transmute(arena_ref) };
+
     f(arena_ref_ctx)
 }
 
