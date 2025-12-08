@@ -13,7 +13,7 @@ fn test_simple_assignment() {
     assert_eq!(result.get("a"), Some(&RsValue::Int(1)));
 }
 ```
-An example if the execution. In particular, the `100` there define the lifetime of the calculation, 
+An example if the execution. In particular, the `100` there defines the lifetime of the calculation, 
 which this allowed up to 100 operation, and would raise `TimeoutError` if it take longer than that 
 to execute.
 
