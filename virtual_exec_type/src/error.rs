@@ -18,6 +18,8 @@ pub enum SandboxExecutionError {
     UndefinedOperatorMethodError,
     InvalidTypeError,
     InvalidSyntaxError,
+    SubscriptKeyError,
+    AttributeNotFoundError
 }
 
 pub type Result<T> = ::core::result::Result<T, SandboxExecutionError>;
