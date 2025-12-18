@@ -13,6 +13,7 @@ pub enum ValueKind<'ctx> {
     ErrorWrapped(SandboxExecutionError),
     Bool(bool),
     String(String),
+    Collection(Vec<ValueKind<'ctx>>),
     None,
 }
 
@@ -33,6 +34,18 @@ impl<'ctx> Downcast<'ctx> for bool {
 impl<'ctx> Upcast<'ctx> for bool {
     fn from_value(&'ctx self) -> ValueKind<'ctx> {
         ValueKind::Bool(*self)
+    }
+}
+
+impl<'ctx> Downcast<'ctx> for Vec<ValueKind<'ctx>> {
+    fn from_value(value: Value<'ctx>) -> Option<&'ctx Self> {
+        value.as_collection()
+    }
+}
+
+impl<'ctx> Upcast<'ctx> for Vec<ValueKind<'ctx>> {
+    fn from_value(&'ctx self) -> ValueKind<'ctx> {
+        ValueKind::Collection(self.clone())
     }
 }
 
@@ -79,6 +92,7 @@ impl<'ctx> ValueContainer<'ctx> {
             ValueKind::Bool(b) => ValueKind::Bool(*b),
             ValueKind::String(s) => ValueKind::String(s.clone()),
             ValueKind::None => ValueKind::None,
+            ValueKind::Collection(c) => ValueKind::Collection(c.clone()),
         };
         ValueContainer::new(new_kind, arena)
     }
@@ -128,6 +142,13 @@ impl<'ctx> ValueContainer<'ctx> {
     pub fn as_none(&self) -> Option<&()> {
         match &self.kind {
             ValueKind::None => Some(&()),
+            _ => None,
+        }
+    }
+
+    pub fn as_collection(&self) -> Option<&Vec<ValueKind<'ctx>>> {
+        match &self.kind {
+            ValueKind::Collection(e) => Some(e),
             _ => None,
         }
     }

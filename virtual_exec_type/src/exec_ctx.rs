@@ -5,6 +5,7 @@ use bumpalo::Bump;
 use std::cell::RefCell;
 use std::collections::HashMap;
 use std::rc::Rc;
+use crate::exec_ctx::RsValue::Vector;
 
 pub type Result<T> = core::result::Result<T, SandboxExecutionError>;
 
@@ -15,6 +16,7 @@ pub enum RsValue {
     Object(HashMap<String, RsValue>),
     Bool(bool),
     String(String),
+    Vector(Vec<RsValue>),
     None,
 }
 
@@ -35,6 +37,13 @@ fn value_kind_to_rs_value(kind: &ValueKind) -> RsValue {
         }
         // Errors are not representable as a PyValue and are skipped.
         ValueKind::ErrorWrapped(_) => RsValue::None,
+        ValueKind::Collection(v) => {
+            let mut vec = Vec::new();
+            for value in v {
+                vec.push(value_kind_to_rs_value(value));
+            }
+            RsValue::Vector(vec)
+        }
     }
 }
 
