@@ -160,7 +160,11 @@ fn parse_expr_with_precedence(input: ParseStream, min_bp: u8) -> Result<Expr> {
 
 impl Parse for Atom {
     fn parse(input: ParseStream) -> Result<Self> {
-        if input.peek(Lit) {
+        if input.peek(token::None) {
+            input.parse::<token::None>()?;
+            return Ok(Atom::Literal(final_ast::Literal::None));
+        }
+        else if input.peek(Lit) {
             let lit: Lit = input.parse()?;
             let final_lit = match lit {
                 Lit::Int(i) => final_ast::Literal::Int(i.base10_parse()?),
