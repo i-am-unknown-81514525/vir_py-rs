@@ -16,6 +16,7 @@
         pkgs = import nixpkgs {
           inherit system;
           overlays = [ (import rust-overlay) ];
+          config.allowUnfree = true;
         };
 
         rustToolchain = pkgs.rust-bin.stable."1.93.1".default.override {
@@ -32,7 +33,6 @@
             pkg-config
 
             rust-analyzer
-            jetbrains.rust-rover
           ];
 
           shellHook = ''
