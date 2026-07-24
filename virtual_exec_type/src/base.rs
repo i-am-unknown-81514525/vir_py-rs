@@ -10,7 +10,7 @@ use alloc::vec::Vec;
 use core::fmt::Debug;
 use async_lock::RwLock;
 use cfg_if::cfg_if;
-use crate::vm_type::Object;
+use crate::vm_type::{AnyType, Object};
 
 pub trait IsTruhy {
     fn is_truthy(&self) -> bool;
@@ -372,18 +372,24 @@ impl<'ctx> Upcast<'ctx> for Object<'ctx> {
 
 pub trait VmAnyType : Send + Sync + Debug {
     fn get_size(&self) -> usize;
-}
 
-pub trait TypeName {
-    fn type_name(&self) -> &'static str;
-}
-
-impl<T: VmAnyType + ?Sized> TypeName for T {
     fn type_name(&self) -> &'static str {
         std::any::type_name::<Self>()
     }
 }
-impl<'ctx> Downcast<'ctx> for Arc<RwLock<dyn VmAnyType>> {
+
+// pub trait TypeName {
+//     fn type_name(&self) -> &'static str;
+// }
+//
+// impl<T: VmAnyType + ?Sized> TypeName for T {
+//     fn type_name(&self) -> &'static str {
+//         std::any::type_name::<T>()
+//     }
+// }
+
+
+impl<'ctx> Downcast<'ctx> for AnyType {
     fn from_value(value: ValuePtr<'ctx>) -> Option<Self> {
         if let Value::Any(v) = value.read_arc_safe().inner.clone() {
             Some(v)
@@ -393,3 +399,8 @@ impl<'ctx> Downcast<'ctx> for Arc<RwLock<dyn VmAnyType>> {
     }
 }
 
+impl<'ctx> Upcast<'ctx> for AnyType {
+    fn from_value(&self, alloc: &MemoryAllocator<'ctx>) -> Result<ValuePtr<'ctx>, MemoryError> {
+        alloc.alloc(Value::Any(self.clone()))
+    }
+}

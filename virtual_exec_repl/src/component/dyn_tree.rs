@@ -10,7 +10,7 @@ use ratatui::{
     widgets::{Paragraph, Widget, Wrap},
 };
 use virtual_exec_type::base::TypeCast;
-use virtual_exec_type::vm_type::Any;
+use virtual_exec_type::vm_type::AnyPtr;
 
 /// A node in the tree
 #[derive(Debug, Clone)]
@@ -19,12 +19,12 @@ pub struct TreeNode<'b> {
     pub id: String,
     pub name: String,
     /// The data associated with this node
-    pub data: Any<'b>,
+    pub data: AnyPtr<'b>,
 }
 
 impl<'b> TreeNode<'b> {
     /// Create a new tree node
-    pub fn new(id: impl Into<String>, name: String, data: Any<'b>) -> Self {
+    pub fn new(id: impl Into<String>, name: String, data: AnyPtr<'b>) -> Self {
         Self {
             id: id.into(),
             name,

@@ -24,9 +24,10 @@ pub mod vm_type {
     use crate::error::ExecutionError;
     use crate::mem::ValuePtr;
     use alloc::string::String;
-    use alloc::sync::Arc;
+    pub use alloc::sync::Arc;
     use alloc::vec::Vec;
-    use async_lock::RwLock;
+    pub use async_lock::{Mutex, RwLock};
+    use crate::base::VmAnyType;
 
     pub type Integer = i64;
     pub type Float = f64;
@@ -37,7 +38,8 @@ pub mod vm_type {
     pub type None = ();
 
     pub type Error = ExecutionError;
-    pub type Any<'a> = ValuePtr<'a>;
+    pub type AnyPtr<'a> = ValuePtr<'a>;
+    pub type AnyType = Arc<RwLock<dyn VmAnyType>>;
 }
 
 #[cfg(feature = "std")]

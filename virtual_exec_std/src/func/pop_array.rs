@@ -4,7 +4,7 @@ use virtual_exec_type::error::{ExecutionError, NonRecoverableError};
 use virtual_exec_type::ext::SafeReadArcExt;
 
 #[fn_extern_wrap]
-fn pop_array_sync<'a>(array: Collection<'a>) -> Result<Any<'a>, Error> {
+fn pop_array_sync<'a>(array: Collection<'a>) -> Result<AnyPtr<'a>, Error> {
     let capacity = array.read_arc_safe().capacity();
     let length = array.read_arc_safe().len();
     if capacity.saturating_sub(100) > length || capacity / length.max(1) > 2 {
