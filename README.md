@@ -117,6 +117,7 @@ WIP Feature list:
 - [ ] literal Collections and object creation
 - [x] Support for any object
 - [ ] Support for instruction, state and memory exporting (Only on value that can be converted to OwnedValue)
+- [ ] WASM handling?
 
 ### Sub-crate List:
 - [virtual_exec_type](https://crates.io/crates/virtual_exec_type)
