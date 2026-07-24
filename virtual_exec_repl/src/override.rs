@@ -2,7 +2,7 @@ use std::sync::{LazyLock, Mutex as StdMutex};
 use virtual_exec_core::fn_extern::MethodResolver;
 use virtual_exec_core::fn_extern::fn_args::FnExternArg::Recurse;
 use virtual_exec_extern::*;
-use virtual_exec_type::base::{ToStringSafe, TypeCast, VmAnyType};
+use virtual_exec_type::base::{Native, ToStringSafe, TypeCast, VmAnyType};
 use virtual_exec_type::vm_type::*;
 
 pub static PRINT_BUFFER: StdMutex<String> = StdMutex::new(String::new());
@@ -47,23 +47,7 @@ fn is_none<'a>(obj: AnyPtr<'a>) -> Result<Boolean, Error> {
 
 extern_link!(IsNone, is_none, 1);
 
-#[derive(Debug)]
-pub struct Arb;
-
-impl VmAnyType for Arb {
-    fn get_size(&self) -> usize {
-        0
-    }
-}
-
-#[fn_extern_wrap]
-fn arb<'a>() -> Result<AnyType, Error> {
-    let v: AnyType = Arc::new(RwLock::new(Arb {}));
-    Ok(v)
-}
-
-extern_link!(Arbitary, arb, 0);
 
 pub static OVERRIDE: LazyLock<MethodResolver> =
-    LazyLock::new(|| resolve!(("print", Print), ("println", PrintLn), ("is_none", IsNone), ("arb", Arbitary)));
+    LazyLock::new(|| resolve!(("print", Print), ("println", PrintLn), ("is_none", IsNone)));
 

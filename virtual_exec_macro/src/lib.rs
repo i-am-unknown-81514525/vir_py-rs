@@ -724,7 +724,7 @@ pub fn fn_extern_wrap(_: TokenStream, input: TokenStream) -> TokenStream {
             let alloc = machine.alloc.clone();
             let mut mapping = ::virtual_exec_core::fn_extern::fn_args::LazyMapping::new(machine);
             #input
-            let result = __fn_wrap(#(#reduced),*).map(|x| ::virtual_exec_type::base::Upcast::from_value(&x, &alloc))??;
+            let result = __fn_wrap(#(#reduced),*).map(|x| ::virtual_exec_type::base::Upcast::from_value(x, &alloc))??;
             for mut item in values {
                 alloc.change_alloc(&mut item)?;
             }
@@ -776,7 +776,7 @@ pub fn fn_extern_wrap_async(_: TokenStream, input: TokenStream) -> TokenStream {
             let alloc = machine.alloc.clone();
             let mut mapping = ::virtual_exec_core::fn_extern::fn_args::LazyMapping::new(machine);
             #input
-            let result = __fn_wrap(#(#reduced),*).await.map(|x| ::virtual_exec_type::base::Upcast::from_value(&x, &alloc))??;
+            let result = __fn_wrap(#(#reduced),*).await.map(|x| ::virtual_exec_type::base::Upcast::from_value(x, &alloc))??;
             for mut item in values {
                 alloc.change_alloc(&mut item)?;
             }

@@ -8,7 +8,8 @@ use alloc::string::{String, ToString};
 use alloc::sync::Arc;
 use alloc::vec::Vec;
 use core::fmt::Debug;
-use async_lock::RwLock;
+use std::any::{Any, TypeId};
+use async_lock::{Mutex, RwLock};
 use cfg_if::cfg_if;
 use crate::vm_type::{AnyType, Object};
 
@@ -165,6 +166,8 @@ pub trait TypeCast<'a> {
     fn as_dptr(&self) -> Option<(u64, usize)>;
 
     fn as_fn_ptr_extern(&self) -> Option<(String, usize)>;
+
+    fn as_native<T: VmAnyType + Clone>(&self) -> Option<T>;
 }
 
 impl<'a> TypeCast<'a> for ValuePtr<'a> {
@@ -252,6 +255,11 @@ impl<'a> TypeCast<'a> for ValuePtr<'a> {
             None
         }
     }
+
+    fn as_native<T: VmAnyType + Clone>(&self) -> Option<T> {
+        let guard = self.read_arc_safe();
+        if let Value::Any(a) = &guard.inner { a.cloned_as::<T>() } else { None }
+    }
 }
 
 pub trait Downcast<'ctx>: Sized {
@@ -259,7 +267,7 @@ pub trait Downcast<'ctx>: Sized {
 }
 
 pub trait Upcast<'ctx>: Sized {
-    fn from_value(&self, alloc: &MemoryAllocator<'ctx>) -> Result<ValuePtr<'ctx>, MemoryError>;
+    fn from_value(self, alloc: &MemoryAllocator<'ctx>) -> Result<ValuePtr<'ctx>, MemoryError>;
 }
 
 impl<'ctx> Downcast<'ctx> for bool {
@@ -269,8 +277,8 @@ impl<'ctx> Downcast<'ctx> for bool {
 }
 
 impl<'ctx> Upcast<'ctx> for bool {
-    fn from_value(&self, alloc: &MemoryAllocator<'ctx>) -> Result<ValuePtr<'ctx>, MemoryError> {
-        alloc.alloc(Value::Bool(*self))
+    fn from_value(self, alloc: &MemoryAllocator<'ctx>) -> Result<ValuePtr<'ctx>, MemoryError> {
+        alloc.alloc(Value::Bool(self))
     }
 }
 
@@ -281,8 +289,8 @@ impl<'ctx> Downcast<'ctx> for i64 {
 }
 
 impl<'ctx> Upcast<'ctx> for i64 {
-    fn from_value(&self, alloc: &MemoryAllocator<'ctx>) -> Result<ValuePtr<'ctx>, MemoryError> {
-        alloc.alloc(Value::Int(*self))
+    fn from_value(self, alloc: &MemoryAllocator<'ctx>) -> Result<ValuePtr<'ctx>, MemoryError> {
+        alloc.alloc(Value::Int(self))
     }
 }
 
@@ -293,8 +301,8 @@ impl<'ctx> Downcast<'ctx> for f64 {
 }
 
 impl<'ctx> Upcast<'ctx> for f64 {
-    fn from_value(&self, alloc: &MemoryAllocator<'ctx>) -> Result<ValuePtr<'ctx>, MemoryError> {
-        alloc.alloc(Value::Float(*self))
+    fn from_value(self, alloc: &MemoryAllocator<'ctx>) -> Result<ValuePtr<'ctx>, MemoryError> {
+        alloc.alloc(Value::Float(self))
     }
 }
 
@@ -305,8 +313,8 @@ impl<'ctx> Downcast<'ctx> for Arc<RwLock<Vec<ValuePtr<'ctx>>>> {
 }
 
 impl<'ctx> Upcast<'ctx> for Arc<RwLock<Vec<ValuePtr<'ctx>>>> {
-    fn from_value(&self, alloc: &MemoryAllocator<'ctx>) -> Result<ValuePtr<'ctx>, MemoryError> {
-        alloc.alloc(Value::Collection(self.clone()))
+    fn from_value(self, alloc: &MemoryAllocator<'ctx>) -> Result<ValuePtr<'ctx>, MemoryError> {
+        alloc.alloc(Value::Collection(self))
     }
 }
 
@@ -317,8 +325,8 @@ impl<'ctx> Downcast<'ctx> for String {
 }
 
 impl<'ctx> Upcast<'ctx> for String {
-    fn from_value(&self, alloc: &MemoryAllocator<'ctx>) -> Result<ValuePtr<'ctx>, MemoryError> {
-        alloc.alloc(Value::String(self.clone().into_boxed_str()))
+    fn from_value(self, alloc: &MemoryAllocator<'ctx>) -> Result<ValuePtr<'ctx>, MemoryError> {
+        alloc.alloc(Value::String(self.into_boxed_str()))
     }
 }
 
@@ -329,7 +337,7 @@ impl<'ctx> Downcast<'ctx> for () {
 }
 
 impl<'ctx> Upcast<'ctx> for () {
-    fn from_value(&self, alloc: &MemoryAllocator<'ctx>) -> Result<ValuePtr<'ctx>, MemoryError> {
+    fn from_value(self, alloc: &MemoryAllocator<'ctx>) -> Result<ValuePtr<'ctx>, MemoryError> {
         alloc.alloc(Value::None)
     }
 }
@@ -341,8 +349,8 @@ impl<'ctx> Downcast<'ctx> for ExecutionError {
 }
 
 impl<'ctx> Upcast<'ctx> for ExecutionError {
-    fn from_value(&self, alloc: &MemoryAllocator<'ctx>) -> Result<ValuePtr<'ctx>, MemoryError> {
-        alloc.alloc(Value::Error(self.clone()))
+    fn from_value(self, alloc: &MemoryAllocator<'ctx>) -> Result<ValuePtr<'ctx>, MemoryError> {
+        alloc.alloc(Value::Error(self))
     }
 }
 
@@ -353,8 +361,8 @@ impl<'ctx> Downcast<'ctx> for ValuePtr<'ctx> {
 }
 
 impl<'ctx> Upcast<'ctx> for ValuePtr<'ctx> {
-    fn from_value(&self, _alloc: &MemoryAllocator<'ctx>) -> Result<ValuePtr<'ctx>, MemoryError> {
-        Ok(self.clone())
+    fn from_value(self, _alloc: &MemoryAllocator<'ctx>) -> Result<ValuePtr<'ctx>, MemoryError> {
+        Ok(self)
     }
 }
 
@@ -365,29 +373,18 @@ impl<'ctx> Downcast<'ctx> for Object<'ctx> {
 }
 
 impl<'ctx> Upcast<'ctx> for Object<'ctx> {
-    fn from_value(&self, alloc: &MemoryAllocator<'ctx>) -> Result<ValuePtr<'ctx>, MemoryError> {
-        alloc.alloc(Value::Object(self.clone()))
+    fn from_value(self, alloc: &MemoryAllocator<'ctx>) -> Result<ValuePtr<'ctx>, MemoryError> {
+        alloc.alloc(Value::Object(self))
     }
 }
 
-pub trait VmAnyType : Send + Sync + Debug {
+pub trait VmAnyType : Send + Sync + Debug + Any {
     fn get_size(&self) -> usize;
 
     fn type_name(&self) -> &'static str {
         std::any::type_name::<Self>()
     }
 }
-
-// pub trait TypeName {
-//     fn type_name(&self) -> &'static str;
-// }
-//
-// impl<T: VmAnyType + ?Sized> TypeName for T {
-//     fn type_name(&self) -> &'static str {
-//         std::any::type_name::<T>()
-//     }
-// }
-
 
 impl<'ctx> Downcast<'ctx> for AnyType {
     fn from_value(value: ValuePtr<'ctx>) -> Option<Self> {
@@ -400,7 +397,91 @@ impl<'ctx> Downcast<'ctx> for AnyType {
 }
 
 impl<'ctx> Upcast<'ctx> for AnyType {
-    fn from_value(&self, alloc: &MemoryAllocator<'ctx>) -> Result<ValuePtr<'ctx>, MemoryError> {
-        alloc.alloc(Value::Any(self.clone()))
+    fn from_value(self, alloc: &MemoryAllocator<'ctx>) -> Result<ValuePtr<'ctx>, MemoryError> {
+        alloc.alloc(Value::Any(self))
+    }
+}
+
+macro_rules! read_any {
+    ($v:expr) => {{
+        cfg_if! {
+            if #[cfg(feature = "std")] { $v.read_blocking() }
+            else { $v.try_read().expect("Deadlock!") }
+        }
+    }};
+}
+
+pub trait AnyCast {
+    fn is_type<T: VmAnyType>(&self) -> bool;
+    fn with_type<T: VmAnyType, R>(&self, f: impl FnOnce(&T) -> R) -> Option<R>;
+    fn cloned_as<T: VmAnyType + Clone>(&self) -> Option<T>;
+}
+
+impl AnyCast for AnyType {
+    fn is_type<T: VmAnyType>(&self) -> bool {
+        let guard = read_any!(self);
+        (&*guard as &dyn Any).is::<T>()
+    }
+
+    fn with_type<T: VmAnyType, R>(&self, f: impl FnOnce(&T) -> R) -> Option<R> {
+        let guard = read_any!(self);
+        let any: &dyn Any = &*guard;
+        any.downcast_ref::<T>().map(f)
+    }
+
+    fn cloned_as<T: VmAnyType + Clone>(&self) -> Option<T> {
+        self.with_type::<T, _>(|v| v.clone())
+    }
+}
+
+/// Note that data will be cloned out when downcast, so an arc pointer should be used when try to reference the data
+pub struct Native<T>(pub T);
+
+impl<'ctx, T: VmAnyType + Clone> Downcast<'ctx> for Native<T> {
+    fn from_value(value: ValuePtr<'ctx>) -> Option<Self> {
+        value.as_native::<T>().map(Native)
+    }
+}
+
+impl<'ctx, T: VmAnyType> Upcast<'ctx> for Native<T> {
+    fn from_value(self, alloc: &MemoryAllocator<'ctx>) -> Result<ValuePtr<'ctx>, MemoryError> {
+        alloc.alloc(Value::Any(Arc::new(RwLock::new(self.0))))
+    }
+}
+
+
+impl<'ctx, T: VmAnyType> Upcast<'ctx> for T {
+    fn from_value(self, alloc: &MemoryAllocator<'ctx>) -> Result<ValuePtr<'ctx>, MemoryError> {
+        alloc.alloc(Value::Any(Arc::new(RwLock::new(self))))
+    }
+}
+
+impl<T> From<T> for Native<T> {
+    fn from(value: T) -> Self {
+        Native(value)
+    }
+}
+
+impl<T: VmAnyType> VmAnyType for Arc<RwLock<T>> {
+    fn get_size(&self) -> usize {
+        self.read_arc_safe().get_size()
+    }
+}
+
+impl<T: VmAnyType> VmAnyType for Arc<Mutex<T>> {
+    fn get_size(&self) -> usize {
+        self.lock_arc_safe().get_size()
+    }
+}
+
+impl<T: VmAnyType> VmAnyType for Arc<std::sync::RwLock<T>> {
+    fn get_size(&self) -> usize {
+        self.read().unwrap().get_size()
+    }
+}
+
+impl<T: VmAnyType> VmAnyType for Arc<std::sync::Mutex<T>> {
+    fn get_size(&self) -> usize {
+        self.lock().unwrap().get_size()
     }
 }
