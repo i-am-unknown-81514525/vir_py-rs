@@ -1,5 +1,5 @@
 use crate::HashMap;
-use crate::base::TypeCast;
+use crate::base::{TypeCast, VmAnyType};
 use crate::error::{ExecutionError, MemoryError, MemoryOutOfBoundError};
 use crate::ext::*;
 use alloc::boxed::Box;
@@ -10,6 +10,7 @@ use async_lock::{Mutex, RwLock};
 use core::marker::PhantomData;
 use core::ops::Deref;
 use std::ops::DerefMut;
+use cfg_if::cfg_if;
 
 pub type MemoryAllocator<'a> = Arc<Mutex<MemoryAllocation<'a>>>;
 
@@ -29,6 +30,7 @@ pub enum Value<'a> {
     Error(ExecutionError),
     DPtr(u64, usize),
     FnPtrExternal(Box<str>, usize),
+    Any(Arc<RwLock<dyn VmAnyType>>)
 }
 
 impl PartialEq for Value<'_> {
@@ -65,6 +67,7 @@ pub enum ValueKind {
     _Scope,
     #[doc(hidden)]
     MemoryChunk,
+    Any,
 }
 
 #[derive(Debug, Clone)]
@@ -148,6 +151,7 @@ impl<'a> Into<ValueKind> for &Value<'a> {
             Value::FnPtrExternal(_, _) => ValueKind::FnPtrExternal,
             Value::_Scope(_) => ValueKind::_Scope,
             Value::MemoryChunk(_) => ValueKind::MemoryChunk,
+            Value::Any(_) => ValueKind::Any,
         }
     }
 }
@@ -243,6 +247,7 @@ fn to_owned_init_transform(ptr: &ValuePtr) -> OwnedValue {
         Value::Error(e) => OwnedValueInternal::Error(e.clone()),
         Value::DPtr(ptr, size) => OwnedValueInternal::DPtr(*ptr, *size),
         Value::FnPtrExternal(name, size) => OwnedValueInternal::FnPtrExternal(name.clone(), *size),
+        Value::Any(_) => OwnedValueInternal::None,
     }))
 }
 
@@ -260,6 +265,7 @@ fn to_empty_collection<'a, 'b>(ptr: &ValuePtr<'a>) -> Value<'b> {
         Value::Error(e) => Value::Error(e.clone()),
         Value::DPtr(ptr, size) => Value::DPtr(*ptr, *size),
         Value::FnPtrExternal(name, size) => Value::FnPtrExternal(name.clone(), *size),
+        Value::Any(v) => Value::Any(v.clone()),
     }
 }
 
@@ -563,6 +569,15 @@ impl<'a> GetSize for Value<'a> {
             Value::Error(_) => 1024,
             Value::DPtr(_, _) => 16 + NODE_OVERHEAD,
             Value::FnPtrExternal(f, _) => f.len() + NODE_OVERHEAD,
+            Value::Any(v) => (move || {
+                cfg_if! {
+                if #[cfg(feature = "std")] {
+                    v.read_blocking().get_size()
+                } else {
+                    v.try_read().expect("Deadlock!").get_size()
+                }
+            }
+            })() + NODE_OVERHEAD,
         }
     }
 }

@@ -7,7 +7,9 @@ use alloc::format;
 use alloc::string::{String, ToString};
 use alloc::sync::Arc;
 use alloc::vec::Vec;
+use core::fmt::Debug;
 use async_lock::RwLock;
+use cfg_if::cfg_if;
 use crate::vm_type::Object;
 
 pub trait IsTruhy {
@@ -29,6 +31,7 @@ impl IsTruhy for Value<'_> {
             Value::Error(_) => false,
             Value::DPtr(_, _) => true,
             Value::FnPtrExternal(_, _) => true,
+            Value::Any(_) => true,
         }
     }
 }
@@ -114,6 +117,22 @@ impl ToStringSafe for Value<'_> {
                 name,
                 size
             ),
+            Value::Any(t) => {
+                let name = (move || {
+                    cfg_if! {
+                    if #[cfg(feature = "std")] {
+                        t.read_blocking().type_name()
+                    } else {
+                        t.try_read().expect("Deadlock!").type_name()
+                    }
+                }
+                })();
+                consume_fmt!(
+                    recurse_restricter,
+                    "Any({})",
+                    name
+                )
+            }
         })
     }
 }
@@ -350,3 +369,27 @@ impl<'ctx> Upcast<'ctx> for Object<'ctx> {
         alloc.alloc(Value::Object(self.clone()))
     }
 }
+
+pub trait VmAnyType : Send + Sync + Debug {
+    fn get_size(&self) -> usize;
+}
+
+pub trait TypeName {
+    fn type_name(&self) -> &'static str;
+}
+
+impl<T: VmAnyType + ?Sized> TypeName for T {
+    fn type_name(&self) -> &'static str {
+        std::any::type_name::<Self>()
+    }
+}
+impl<'ctx> Downcast<'ctx> for Arc<RwLock<dyn VmAnyType>> {
+    fn from_value(value: ValuePtr<'ctx>) -> Option<Self> {
+        if let Value::Any(v) = value.read_arc_safe().inner.clone() {
+            Some(v)
+        } else {
+            None
+        }
+    }
+}
+
