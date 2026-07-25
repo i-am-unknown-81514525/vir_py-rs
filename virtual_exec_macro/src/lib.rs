@@ -9,6 +9,56 @@ use virtual_exec_parser::parser::convert_stmt;
 use virtual_exec_parser::tokenizer::{AssignExpr, Atom, Expr, Stmt, TopLevelBlock};
 use virtual_exec_type::ast::core::{BinaryOperator, Literal, Module, UnaryOperator};
 
+fn upcast_expr(expr: &virtual_exec_type::ast::core::Expr) -> virtual_exec_parser::tokenizer::Expr {
+    match expr {
+        virtual_exec_type::ast::core::Expr::Literal(lit) => Expr::Atom(
+            Atom::Literal(lit.clone())
+        ),
+        virtual_exec_type::ast::core::Expr::Variable(var) => Expr::Atom(
+            Atom::Variable(var.clone())
+        ),
+        virtual_exec_type::ast::core::Expr::BinaryOp {
+            left,
+            op,
+            right
+        } => Expr::Binary(
+            Box::from(upcast_expr(&left.kind)),
+            op.clone(),
+            Box::from(upcast_expr(&right.kind))
+        ),
+        virtual_exec_type::ast::core::Expr::UnaryOp {
+            op,
+            operand
+        } => Expr::Unary(op.clone(), Box::from(upcast_expr(&operand.kind))),
+        virtual_exec_type::ast::core::Expr::Wrapped(expr) => Expr::Atom(
+            Atom::Paren(
+                Box::from(upcast_expr(&expr.kind))
+            )
+        ),
+        virtual_exec_type::ast::core::Expr::Call {
+            function,
+            args
+        } => Expr::Call(
+            Box::from(upcast_expr(&function.kind)),
+            args.iter().map(|x| upcast_expr(&x.kind)).collect()
+        ),
+        virtual_exec_type::ast::core::Expr::Attribute {
+            value,
+            attr
+        } => Expr::Attr(
+            Box::from(upcast_expr(&value.kind)),
+            attr.clone()
+        ),
+        virtual_exec_type::ast::core::Expr::Subscript {
+            value,
+            slice
+        } => Expr::Subscript(
+            Box::from(upcast_expr(&value.kind)),
+            Box::from(upcast_expr(&slice.kind))
+        )
+    }
+}
+
 fn literal_to_token(lit: Literal) -> impl ToTokens {
     match lit {
         Literal::Int(v) => quote! { ::virtual_exec_type::ast::core::Literal::Int(#v) },
@@ -18,6 +68,14 @@ fn literal_to_token(lit: Literal) -> impl ToTokens {
         }
         Literal::Bool(v) => quote! { ::virtual_exec_type::ast::core::Literal::Bool(#v) },
         Literal::None => quote! { ::virtual_exec_type::ast::core::Literal::None },
+        Literal::List(v) => {
+            let conv: Vec<_> = v.iter().map(|x| expr_to_token(upcast_expr(&**x))).collect();
+            quote! {
+                ::virtual_exec_type::ast::core::Literal::List(vec![
+                    #(Box::new(#conv)),*
+                ])
+            }
+        }
     }
 }
 
@@ -181,7 +239,7 @@ fn assign_expr_to_token(expr: AssignExpr) -> impl ToTokens {
             let value = expr_to_token(*value);
             quote! {
                 ::virtual_exec_type::ast::core::AssignExpr::Attr {
-                    value: Box::new(value),
+                    value: Box::new(#value),
                     name: (#name).to_string()
                 }
             }

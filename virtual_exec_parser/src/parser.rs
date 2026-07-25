@@ -133,7 +133,7 @@ fn convert_fn_stmt(
     Ok(final_ast::Node { kind, span: None })
 }
 
-fn convert_expr(expr: tokenizer::Expr) -> final_ast::Node<final_ast::Expr> {
+pub(crate) fn convert_expr(expr: tokenizer::Expr) -> final_ast::Node<final_ast::Expr> {
     let kind = match expr {
         tokenizer::Expr::Atom(atom) => match atom {
             tokenizer::Atom::Literal(l) => final_ast::Expr::Literal(l),

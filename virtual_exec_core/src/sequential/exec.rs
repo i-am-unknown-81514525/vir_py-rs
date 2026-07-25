@@ -1,5 +1,5 @@
 use crate::HashMap;
-use crate::sequential::instructions::{Instruction, SubscriptLoad};
+use crate::sequential::instructions::Instruction;
 use alloc::string::{String, ToString};
 use alloc::sync::Arc;
 use alloc::vec::Vec;
@@ -512,6 +512,7 @@ impl<'ctx> InstStateMachine<'ctx> {
                     ));
                     return self.state.clone();
                 }
+                self.alloc.lock_arc_blocking().check_alloc_err(len as usize * 8)?;
                 let mut arr = Vec::with_capacity(len as usize);
                 for _ in 0..len {
                     arr.push(self.pop_get()?);

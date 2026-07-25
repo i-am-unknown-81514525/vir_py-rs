@@ -3,6 +3,8 @@ use syn::parse::{Parse, ParseStream, Result};
 use syn::punctuated::Punctuated;
 use syn::{Ident, Lit, Token, braced, parenthesized, bracketed};
 use virtual_exec_type::ast::core as final_ast;
+use virtual_exec_type::ast::core::Literal;
+use crate::parser::convert_expr;
 
 #[derive(Clone)]
 pub struct TopLevelBlock {
@@ -471,6 +473,11 @@ impl Parse for Atom {
             let content;
             parenthesized!(content in input);
             Ok(Atom::Paren(Box::new(content.parse()?)))
+        } else if input.peek(syn::token::Bracket) {
+            let content;
+            bracketed!(content in input);
+            let arr: Punctuated<Expr, Token![,]> = Punctuated::parse_terminated(&content)?;
+            Ok(Atom::Literal(Literal::List(arr.into_iter().map(|x| Box::new(convert_expr(x).kind)).collect::<Vec<_>>())))
         } else {
             Err(input.error("expected a literal, an identifier, or a parenthesized expression"))
         }

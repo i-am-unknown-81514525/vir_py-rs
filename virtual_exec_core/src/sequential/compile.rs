@@ -280,13 +280,22 @@ impl GetInstruction for Expr {
 }
 
 impl GetInstruction for Literal {
-    fn inst(&self, _offset: u64) -> Vec<Instruction> {
+    fn inst(&self, offset: u64) -> Vec<Instruction> {
         match self {
             Literal::Bool(v) => vec![LoadLitBool(v.clone())],
             Literal::Int(v) => vec![Instruction::LoadLitInt(v.clone())],
             Literal::Float(v) => vec![Instruction::LoadLitFloat(v.clone())],
             Literal::String(v) => vec![Instruction::LoadLitString(v.clone().into_boxed_str())],
             Literal::None => vec![Instruction::LoadNone],
+            Literal::List(v) => {
+                let mut insts: Vec<Instruction> = Vec::new();
+                for expr in v.iter().rev() {
+                    let expr_inst = (*expr).inst(offset + insts.len() as u64);
+                    insts.extend(expr_inst);
+                }
+                insts.push(Instruction::ConstructArr(v.len() as u64));
+                insts
+            }
         }
     }
 }
