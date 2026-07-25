@@ -567,10 +567,20 @@ impl<'ctx> InstStateMachine<'ctx> {
                 if let Some(_) = value.as_collections() {
                     if let Some(idx) = idx.as_int() {
                         self.push_idx_ref((value, idx))?;
+                    }  else {
+                        self.state = Err(ExecutionError::NonRecoverable(
+                            NonRecoverableError::UnexpectedIdxError,
+                        ));
+                        return self.state.clone();
                     }
                 } else if let Some(_) = value.as_object() {
                     if let Some(s) = idx.as_string() {
                         self.push_ref((Some(value), s))?;
+                    }  else {
+                        self.state = Err(ExecutionError::NonRecoverable(
+                            NonRecoverableError::UnexpectedIdxError,
+                        ));
+                        return self.state.clone();
                     }
                 } else {
                     self.state = Err(ExecutionError::NonRecoverable(
