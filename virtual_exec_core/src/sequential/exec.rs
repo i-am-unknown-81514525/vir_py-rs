@@ -534,7 +534,7 @@ impl<'ctx> InstStateMachine<'ctx> {
                     let name = self.pop_get()?;
                     let value = self.pop_get()?;
                     if name.as_string().is_none() {
-                        let remaining_stackdrop = (len2 - idx) * 2;
+                        let remaining_stackdrop = (len2 - idx - 1) * 2;
                         for _ in 0..remaining_stackdrop {
                             let _ = self.pop_get(); // Drop error since AttrNotStringError is the primary issue, although otherwise this would cause error as well for stack underflow
                         }
