@@ -118,12 +118,6 @@ register_op_pos!(f64, f64, |a| Ok(a));
 register_op_neg!(i64, i64, |a: i64| Ok(a.wrapping_neg()));
 register_op_neg!(f64, f64);
 
-register_op_add!(String, String, String, |a: String, b: String| Ok(format!(
-    "{}{}",
-    a, b
-)
-.to_string()));
-
 macro_rules! auto_diff_type_op {
     ($(($lhs:ty, $rhs: ty)),+) => {
         $(

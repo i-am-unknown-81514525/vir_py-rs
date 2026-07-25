@@ -98,8 +98,8 @@ fn test_value_creation_and_downcast() {
 
 WIP Feature list:
 - [x] Variable assignment
-- [ ] Attribute assignment
-- [ ] Subscript assignment (i.e. `x[a]`)
+- [x] Attribute assignment
+- [x] Subscript assignment (i.e. `x[a]`)
 - [x] Expression evaluation
 - [x] A parser and type system
 - [x] Attribute system
