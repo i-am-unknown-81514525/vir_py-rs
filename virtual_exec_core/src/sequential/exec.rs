@@ -488,6 +488,8 @@ impl<'ctx> InstStateMachine<'ctx> {
                 }
             }
             Instruction::Ret => {
+                let v = self.pop_get()?;
+                self.push_value(v)?;
                 self.pop_frame()?;
             }
             Instruction::LoadNone => {
