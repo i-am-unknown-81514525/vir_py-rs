@@ -6,11 +6,13 @@ use alloc::sync::Arc;
 use alloc::vec;
 use alloc::vec::Vec;
 use async_lock::RwLock;
+use virtual_exec_type::ast::core::Module;
 use virtual_exec_type::error::{CriticalError, ExecutionError, MemoryError};
 use virtual_exec_type::ext::*;
 use virtual_exec_type::mem::{
     Allocator, MemoryAllocator, MemoryAllocatorConstructor, OwnedValue, Value, ValuePtr,
 };
+use crate::sequential::compile::GetInstruction;
 
 /// The execution instance including the memory allocator and the instruction state machine
 #[derive(Debug, Clone)]
@@ -196,5 +198,25 @@ impl<'a> Machine<'a> {
             machine: forked_inst_state_machine,
             resolvers: self.resolvers.clone(),
         }
+    }
+
+    pub fn push_insts(&mut self, insts: Vec<Instruction>) -> () {
+        self.machine.instructions.extend(insts);
+        if let Ok(State::Terminated { end_of_instruction: true}) = self.machine.state.clone() {
+            self.machine.state = Ok(State::Ok);
+        }
+    }
+
+    pub fn push_modules(&mut self, module: Module) -> () {
+        let code = module.inst(self.machine.instructions.len() as u64);
+        self.push_insts(code);
+    }
+
+    #[cfg(feature = "parse")]
+    pub fn push_code(&mut self, code: &str) -> Result<(), virtual_exec_parser::error::ParseError> {
+        use virtual_exec_parser::parser::parse;
+        let module = parse(code)?;
+        self.push_modules(module);
+        Ok(())
     }
 }
