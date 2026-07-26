@@ -196,3 +196,8 @@ pub fn parse(source: &str) -> std::result::Result<final_ast::Module, ParseError>
         .collect::<Result<_, _>>()?;
     Ok(final_ast::Module { body, span: None })
 }
+
+pub fn parse_expr(expr: &str) -> std::result::Result<final_ast::Expr, ParseError> {
+    let expr: tokenizer::Expr = syn::parse_str(expr).map_err(ParseError::SynParseError)?;
+    Ok(convert_expr(expr).kind)
+}
