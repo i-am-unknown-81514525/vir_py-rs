@@ -10,6 +10,10 @@ pub fn compile(module: &Module) -> Vec<Instruction> {
     module.inst(0)
 }
 
+pub fn compile_offset(module: &Module, offset: u64) -> Vec<Instruction> {
+    module.inst(offset)
+}
+
 pub trait GetInstruction {
     fn inst(&self, offset: u64) -> Vec<Instruction>;
 }

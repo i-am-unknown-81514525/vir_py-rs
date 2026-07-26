@@ -12,7 +12,7 @@ use virtual_exec_type::ext::*;
 use virtual_exec_type::mem::{
     Allocator, MemoryAllocator, MemoryAllocatorConstructor, OwnedValue, Value, ValuePtr,
 };
-use crate::sequential::compile::GetInstruction;
+use crate::sequential::compile::{compile_offset, GetInstruction};
 
 /// The execution instance including the memory allocator and the instruction state machine
 #[derive(Debug, Clone)]
@@ -207,8 +207,8 @@ impl<'a> Machine<'a> {
         }
     }
 
-    pub fn push_modules(&mut self, module: Module) -> () {
-        let code = module.inst(self.machine.instructions.len() as u64);
+    pub fn push_modules(&mut self, module: &Module) -> () {
+        let code = compile_offset(&module, self.machine.instructions.len() as u64);
         self.push_insts(code);
     }
 
@@ -216,7 +216,7 @@ impl<'a> Machine<'a> {
     pub fn push_code(&mut self, code: &str) -> Result<(), virtual_exec_parser::error::ParseError> {
         use virtual_exec_parser::parser::parse;
         let module = parse(code)?;
-        self.push_modules(module);
+        self.push_modules(&module);
         Ok(())
     }
 }
