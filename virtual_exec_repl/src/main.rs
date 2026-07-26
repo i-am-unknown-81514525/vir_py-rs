@@ -52,8 +52,8 @@ fn main() -> io::Result<()> {
         OVERRIDE.clone(),
         SYS.clone(),
     ])));
-    app.lock().unwrap().current_machine.machine.state = Ok(State::Terminated);
-    app.lock().unwrap().rollback.machine.state = Ok(State::Terminated);
+    app.lock().unwrap().current_machine.machine.state = Ok(State::Terminated {end_of_instruction: true});
+    app.lock().unwrap().rollback.machine.state = Ok(State::Terminated {end_of_instruction: true});
 
     // Main loop
     loop {
@@ -80,7 +80,7 @@ fn main() -> io::Result<()> {
                 app_obj.current_machine.machine.state = Err(ExecutionError::Critical(CriticalError::GenericPanicRewindError));
                 app_obj.first_ctrl_c = false;
             }
-            if let Ok(State::Terminated) = app_obj.current_machine.machine.state {
+            if let Ok(State::Terminated {end_of_instruction: true}) = app_obj.current_machine.machine.state {
                 app_obj.rollback = app_obj.current_machine.fork();
                 let code = app_obj.eval_state.as_ref().unwrap().code.clone();
                 app_obj
@@ -309,11 +309,11 @@ fn main() -> io::Result<()> {
                 inst_count: 0,
                 buffer: String::new(),
             });
-            if let Ok(State::Terminated) = app_obj.current_machine.machine.state
+            if let Ok(State::Terminated {end_of_instruction: true}) = app_obj.current_machine.machine.state
                 && len > 0
             {
                 app_obj.current_machine.machine.state = Ok(State::Ok);
-            } else if let Ok(State::Terminated) = app_obj.current_machine.machine.state
+            } else if let Ok(State::Terminated {end_of_instruction: true}) = app_obj.current_machine.machine.state
                 && len == 0
             {
                 let code = app_obj.eval_state.as_ref().unwrap().code.clone();

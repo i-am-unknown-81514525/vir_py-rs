@@ -82,7 +82,9 @@ pub struct InstStateMachine<'ctx> {
 #[derive(Debug, Clone)]
 pub enum State<'ctx> {
     Ok,
-    Terminated,
+    Terminated {
+        end_of_instruction: bool
+    },
     Interrupt,
     Timeout(u64),
     FnExternInput(String, usize),
@@ -592,7 +594,7 @@ impl<'ctx> InstStateMachine<'ctx> {
                 }
             }
             Instruction::Terminate => {
-                self.state = Ok(State::Terminated);
+                self.state = Ok(State::Terminated {end_of_instruction: false});
                 return self.state.clone();
             }
             Instruction::Interrupt => {
@@ -632,7 +634,7 @@ impl<'ctx> InstStateMachine<'ctx> {
 
     pub fn run_once(&mut self) -> Result<State<'ctx>, ExecutionError> {
         match self.state.clone() {
-            Ok(State::Terminated) => return Ok(State::Terminated),
+            Ok(State::Terminated {end_of_instruction}) => return Ok(State::Terminated {end_of_instruction}),
             Ok(State::Interrupt) => return Ok(State::Interrupt),
             Ok(State::FnExternInput(a, b)) => return Ok(State::FnExternInput(a, b)),
             Ok(State::FnExternOutput(a, b)) => return Ok(State::FnExternOutput(a, b)),
@@ -646,7 +648,7 @@ impl<'ctx> InstStateMachine<'ctx> {
             Ok(State::Ok) | Ok(State::Timeout(_)) => {}
         };
         if self.get_stack_ref()?.ptr as usize >= self.instructions.len() {
-            self.state = Ok(State::Terminated);
+            self.state = Ok(State::Terminated {end_of_instruction: true});
             return self.state.clone();
         }
         if let Ok(State::Timeout(req)) = self.state
@@ -684,7 +686,7 @@ impl<'ctx> InstStateMachine<'ctx> {
             && let Some(frame) = self.fn_stack_frame.last()
             && frame.ptr as usize == self.instructions.len()
         {
-            self.state = Ok(State::Terminated);
+            self.state = Ok(State::Terminated {end_of_instruction: true});
             return self.state.clone();
         }
         self.state.clone()
@@ -838,7 +840,7 @@ impl<'ctx> InstStateMachine<'ctx> {
                 ),
                 State::FnExternInput(s, size) => State::FnExternInput(s.clone(), *size),
                 State::Ok => State::Ok,
-                State::Terminated => State::Terminated,
+                State::Terminated {end_of_instruction} => State::Terminated {end_of_instruction: *end_of_instruction},
                 State::Interrupt => State::Interrupt,
                 State::Timeout(inst) => State::Timeout(*inst),
             }),

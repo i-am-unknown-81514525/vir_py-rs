@@ -13,7 +13,7 @@ fn test_mem() {
         let mut machine =
             Machine::new(compiled.clone(), 1 << 19, 500, vec![BASIC.clone()]).unwrap();
         match machine.sync_run_all() {
-            Ok(State::Ok) | Ok(State::Terminated) => {}
+            Ok(State::Ok) | Ok(State::Terminated {..}) => {}
             Ok(reason) => {
                 println!("state: {:?}", reason);
             }
