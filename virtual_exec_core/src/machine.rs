@@ -6,6 +6,8 @@ use alloc::sync::Arc;
 use alloc::vec;
 use alloc::vec::Vec;
 use async_lock::RwLock;
+use virtual_exec_parser::error::ParseError;
+use virtual_exec_parser::parser::parse_expr;
 use virtual_exec_type::ast::core::Module;
 use virtual_exec_type::error::{CriticalError, ExecutionError, MemoryError};
 use virtual_exec_type::ext::*;
@@ -23,6 +25,23 @@ pub struct Machine<'a> {
     /// The instruction execution machine for the instance
     pub machine: InstStateMachine<'a>,
     pub resolvers: Vec<MethodResolver>,
+}
+
+pub enum ExprEvalError {
+    ExecutionError(ExecutionError),
+    ParseError(ParseError)
+}
+
+impl Into<ExprEvalError> for ExecutionError {
+    fn into(self) -> ExprEvalError {
+        ExprEvalError::ExecutionError(self)
+    }
+}
+
+impl Into<ExprEvalError> for ParseError {
+    fn into(self) -> ExprEvalError {
+        ExprEvalError::ParseError(self)
+    }
 }
 
 impl<'a> Machine<'a> {
@@ -218,5 +237,30 @@ impl<'a> Machine<'a> {
         let module = parse(code)?;
         self.push_modules(&module);
         Ok(())
+    }
+
+    #[cfg(feature = "parse")]
+    pub(crate) fn eval_machine<'b>(&self, code: &str) -> Result<Machine<'b>, ParseError> {
+        let mut fork = self.fork();
+        let expr = parse_expr(&code)?;
+        let insts = expr.inst(fork.machine.instructions.len() as u64);
+        fork.push_insts(insts);
+        Ok(fork)
+    }
+
+    #[cfg(feature = "parse")]
+    pub fn eval_sync_all(&self, code: &str) -> Result<OwnedValue, ExprEvalError> {
+        let mut machine = self.eval_machine(code).map_err(|x| x.into())?;
+        machine.sync_run_all().map_err(|x| x.into())?;
+        let ptr = machine.machine.pop_get().map_err(|x| x.into())?;
+        Ok(machine.alloc.lock_arc_safe().get_owned(&ptr).unwrap())
+    }
+
+    #[cfg(feature = "parse")]
+    pub async fn eval_async_all(&self, code: &str) -> Result<OwnedValue, ExprEvalError> {
+        let mut machine = self.eval_machine(code).map_err(|x| x.into())?;
+        machine.async_run_all().await.map_err(|x| x.into())?;
+        let ptr = machine.machine.pop_get().map_err(|x| x.into())?;
+        Ok(machine.alloc.lock_arc_safe().get_owned(&ptr).unwrap())
     }
 }

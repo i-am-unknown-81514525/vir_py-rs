@@ -244,7 +244,7 @@ impl<'ctx> InstStateMachine<'ctx> {
         ))
     }
 
-    fn pop_get(&mut self) -> Result<ValuePtr<'ctx>, ExecutionError> {
+    pub(crate) fn pop_get(&mut self) -> Result<ValuePtr<'ctx>, ExecutionError> {
         let result = { self.pop()? };
 
         match result {
