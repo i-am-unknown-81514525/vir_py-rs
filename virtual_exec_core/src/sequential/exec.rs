@@ -612,7 +612,8 @@ impl<'ctx> InstStateMachine<'ctx> {
             }
             Instruction::LoadDPtr(ptr, arg_len) => {
                 self.push(StackItem::Value(self.alloc(Value::DPtr(ptr, arg_len))?))?
-            }
+            },
+            Instruction::Nop => {}
         };
         self.state.clone()
     }

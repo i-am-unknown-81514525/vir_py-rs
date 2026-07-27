@@ -248,6 +248,7 @@ impl<'a> Machine<'a> {
         Ok(fork)
     }
 
+    /// Note: The following code wouldn't allow runtime controlled execution behaviour(It will execute to the end or failed). Use with caution
     #[cfg(feature = "parse")]
     pub fn eval_sync_all(&self, code: &str) -> Result<OwnedValue, ExprEvalError> {
         let mut machine = self.eval_machine(code).map_err(|x| x.into())?;
@@ -256,11 +257,60 @@ impl<'a> Machine<'a> {
         Ok(machine.alloc.lock_arc_safe().get_owned(&ptr).unwrap())
     }
 
+
+    /// Note: The following code wouldn't allow runtime controlled execution behaviour(It will execute to the end or failed). Use with caution
     #[cfg(feature = "parse")]
     pub async fn eval_async_all(&self, code: &str) -> Result<OwnedValue, ExprEvalError> {
         let mut machine = self.eval_machine(code).map_err(|x| x.into())?;
         machine.async_run_all().await.map_err(|x| x.into())?;
         let ptr = machine.machine.pop_get().map_err(|x| x.into())?;
         Ok(machine.alloc.lock_arc_safe().get_owned(&ptr).unwrap())
+    }
+
+    fn get_named_module_machine<'b>(&self, module: &Module) -> Machine<'b> {
+        let mut alt: Machine<'b> = self.fork();
+        let offset = alt.machine.instructions.len();
+        // Jmp
+        let code = compile_offset(module, offset as u64 + 1);
+        // Nop
+        let jmp_inst = Instruction::Jmp((offset + 1 + code.iter().len()) as u64); // Jmp to nop
+        alt.push_insts(vec![jmp_inst]);
+        alt.push_insts(code);
+        alt.push_insts(vec![Instruction::Nop]);
+        alt.machine.fn_stack_frame.push(FnStackFrame {
+            ptr: (offset + 1) as u64,
+            mapping: Arc::new(Default::default()),
+            _acct: None,
+        });
+        alt
+    }
+
+    pub(crate) fn named_module_post_setup(&mut self, name: &str) -> Result<(), ExecutionError> {
+        if let Ok(State::Terminated { end_of_instruction: true}) = self.machine.state.clone() {
+            let frame = self.machine.fn_stack_frame.pop().ok_or(ExecutionError::Critical(CriticalError::FnStackUnderflowError))?;
+            let items = frame.mapping;
+            let first = self.machine.fn_stack_frame.get_mut(0).ok_or(ExecutionError::Critical(CriticalError::FnStackUnderflowError))?;
+            first.mapping.write_arc_safe().entry(name.to_string()).insert_entry(self.alloc.alloc(Value::Object(items))?);
+            return Ok(())
+        }
+        Err(ExecutionError::Critical(CriticalError::UnexpectedStateError))
+    }
+
+    /// Note: The following code wouldn't allow runtime controlled execution behaviour(It will execute to the end or failed). Use with caution
+    /// This should only be used before user code being executed
+    pub fn push_named_module_sync_all<'b>(&self, name: &str, module: &Module) -> Result<Machine<'b>, ExecutionError> {
+        let mut machine: Machine<'b> = self.get_named_module_machine(module);
+        machine.sync_run_all()?;
+        machine.named_module_post_setup(name)?;
+        Ok(machine)
+    }
+
+    /// Note: The following code wouldn't allow runtime controlled execution behaviour(It will execute to the end or failed). Use with caution
+    /// This should only be used before user code being executed
+    pub async fn push_named_module_async_all<'b>(&self, name: &str, module: &Module) -> Result<Machine<'b>, ExecutionError> {
+        let mut machine: Machine<'b> = self.get_named_module_machine(module);
+        machine.async_run_all().await?;
+        machine.named_module_post_setup(name)?;
+        Ok(machine)
     }
 }

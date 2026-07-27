@@ -623,6 +623,9 @@ fn inst_to_token(inst: Instruction) -> impl ToTokens {
         }
         Instruction::Swap => {
             quote! { ::virtual_exec_core::sequential::instructions::Instruction::Swap }
+        },
+        Instruction::Nop => {
+            quote! { ::virtual_exec_core::sequential::instructions::Instruction::Nop }
         }
     }
 }

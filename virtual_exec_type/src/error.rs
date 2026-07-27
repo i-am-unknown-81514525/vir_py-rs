@@ -46,6 +46,7 @@ pub enum CriticalError {
     InvalidSyntaxError,
     FnStackUnderflowError,
     VStackUnderflowError,
+    UnexpectedStateError,
 }
 
 #[derive(Clone, Debug, PartialOrd, PartialEq, Ord, Eq)]

@@ -93,6 +93,7 @@ pub enum Instruction {
     // Stack
     Pop,
     Swap,
+    Nop,
 }
 
 #[cfg(feature = "std")]
@@ -150,6 +151,7 @@ impl DisplayInst for Instruction {
             Instruction::Pop => "pop".to_string(),
             Instruction::LoadDPtr(x, l) => format!("lit_load ptr={x}, len={l}"),
             Instruction::Swap => "swp".to_string(),
+            Instruction::Nop => "nop".to_string(),
         }
     }
 }
@@ -221,6 +223,7 @@ pub enum InstructionBuilder {
     // Stack
     Pop,
     Swap,
+    Nop
 }
 
 pub trait ConvertInstruction {
@@ -353,6 +356,7 @@ impl ConvertInstruction for InstructionBuilder {
                 Instruction::LoadDPtr(offset, arg_count)
             }
             InstructionBuilder::Swap => Instruction::Swap,
+            InstructionBuilder::Nop => Instruction::Nop,
         }
     }
 }
@@ -403,6 +407,7 @@ impl Into<InstructionBuilder> for Instruction {
                 InstructionBuilder::LoadDPtr(offset, arg_count)
             }
             Instruction::Swap => InstructionBuilder::Swap,
+            Instruction::Nop => InstructionBuilder::Nop,
         }
     }
 }
