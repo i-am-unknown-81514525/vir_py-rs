@@ -1,3 +1,5 @@
+mod rm_ele;
+
 macro_rules! func {
     ($name: ident) => {
         pub mod $name;
