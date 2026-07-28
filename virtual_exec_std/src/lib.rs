@@ -2,6 +2,7 @@ pub mod func;
 
 #[cfg(feature = "sys")]
 pub mod sys;
+mod stream;
 
 use crate::func::*;
 #[cfg(feature = "sys")]
