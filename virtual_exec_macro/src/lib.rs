@@ -675,11 +675,26 @@ macro_rules! gen_op {
 }
 
 macro_rules! gen_branch {
-    ($opt:ident,$path:ident, $(($name:ident, $t:path)),*) => {
+    ($opt:ident,$path:ident, $to:tt $i:ident, $(($name:ident, $t:path)),*$(, $($alt_name:ident),*)?) => {
         match $opt {
             $(
                 ::virtual_exec_core::fn_extern::fn_args::FnExternArgType::$name => (gen_op!($name, $path), Some(parse_quote!( $t ))),
             )*
+            $(
+                $(
+                    ::virtual_exec_core::fn_extern::fn_args::FnExternArgType::$alt_name => (
+                        quote! {
+                            ::virtual_exec_type::base::Downcast::from_value(values[$to $i].clone())
+                                .ok_or(
+                                    ::virtual_exec_type::error::ExecutionError::NonRecoverable(
+                                        ::virtual_exec_type::error::NonRecoverableError::InvalidTypeError
+                                    )
+                            )?
+                        },
+                        None,
+                    ),
+                )*
+            )?
         }
     };
 }
@@ -699,9 +714,11 @@ fn arg_to_token(arg: FnArg, idx: usize) -> (impl ToTokens, Option<syn::Type>) {
                 //     virtual_exec_core::fn_extern::fn_args::FnExternArgType::Alloc => (gen_op!(Alloc, path), Some(parse_quote!( ::virtual_exec_type::mem::MemoryAllocator ))),
                 //     virtual_exec_core::fn_extern::fn_args::FnExternArgType::Machine => (gen_op!(Machine, path), Some(parse_quote!( ::virtual_exec_type::__private::Arc<::async_lock::Mutex<&mut ::virtual_exec_core::machine::Machine>>) )),
                 // }
+                let idx_lit = syn::LitInt::new(&idx.to_string(), proc_macro2::Span::call_site());
                 gen_branch!(
                     opt,
                     path,
+                    #idx_lit,
                     (Alloc, ::virtual_exec_type::mem::MemoryAllocator<'a>),
                     (
                         Machine,
@@ -714,7 +731,8 @@ fn arg_to_token(arg: FnArg, idx: usize) -> (impl ToTokens, Option<syn::Type>) {
                     (
                         Recurse,
                         ::virtual_exec_type::config::recurse::RecurseRestricter<'a>
-                    )
+                    ),
+                    Native
                 )
             } else {
                 (

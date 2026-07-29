@@ -7,6 +7,8 @@ mod stream;
 use crate::func::*;
 #[cfg(feature = "sys")]
 use crate::sys::*;
+#[cfg(feature = "stream")]
+use crate::stream::*;
 use std::sync::LazyLock;
 use virtual_exec_core::fn_extern::{FnExternConstruct, MethodResolver};
 
@@ -21,22 +23,14 @@ pub static BASIC: LazyLock<MethodResolver> = LazyLock::new(|| {
         ("arr_get_len", ArrGetLen),
         ("concat", Concat),
         ("create_obj", CreateObj),
-        ("dir", Dir)
-    )
-});
-
-#[cfg(feature = "sys")]
-pub static SYS: LazyLock<MethodResolver> = LazyLock::new(|| {
-    resolve!(
-        ("print", Print),
-        ("println", PrintLn),
-        ("arr_get_from_idx", ArrGetFromIdx),
-        ("create_array", CreateArray),
-        ("arr_get_len", ArrGetLen),
-        ("concat", Concat),
-        ("create_obj", CreateObj),
         ("dir", Dir),
-        ("push_array", PushArray),
-        ("pop_array", PopArray)
+        #[cfg(feature = "sys")]
+        ("print", Print),
+        #[cfg(feature = "sys")]
+        ("println", PrintLn),
+        #[cfg(feature = "stream")]
+        ("get_output_stream", GetOutputStream),
+        #[cfg(feature = "stream")]
+        ("write_stream", WriteStream)
     )
 });

@@ -1,8 +1,20 @@
 use std::panic::Location;
 use std::pin::Pin;
 use std::sync::Arc;
-use futures::future::BoxFuture;
+use async_lock::RwLock;
 use virtual_exec_type::base::VmAnyType;
+
+macro_rules! func {
+    ($name: ident) => {
+        pub mod $name;
+        #[allow(unused)]
+        pub use $name::*;
+    };
+}
+
+func!(get_output_stream);
+func!(write_stream);
+
 
 pub struct Named<W> {
     f: W,
@@ -25,7 +37,48 @@ pub struct OutputByteStreamInner {
     pub async_fn: Option<Named<AsyncWriter>>
 }
 
-pub type OutputByteStream = Arc<async_lock::RwLock<OutputByteStreamInner>>;
+
+impl OutputByteStreamInner {
+    #[track_caller]
+    pub fn new_sync<F>(f: F) -> Self
+        where F: Fn(Vec<u8>) -> bool + Send + Sync + 'static
+    {
+        Self {
+            sync_fn: Named {
+                f: Arc::new(f),
+                name: std::any::type_name::<F>(),
+                at: Location::caller()
+            },
+            async_fn: None
+        }
+    }
+
+    #[track_caller]
+    pub fn new_async<F, AF, Fut>(f: F, af: AF) -> Self
+        where
+            F: Fn(Vec<u8>) -> bool + Send + Sync + 'static,
+            AF: Fn(Vec<u8>) -> Fut + Send + Sync + 'static,
+            Fut: Future<Output = bool> + Send + 'static
+    {
+        let at = Location::caller();
+        let af = Arc::new(af);
+        let async_writer: AsyncWriter = Arc::new(move |b| Box::pin(af(b)) as _);
+        Self {
+            sync_fn: Named {
+                f: Arc::new(f),
+                name: std::any::type_name::<F>(),
+                at
+            },
+            async_fn: Some(Named {
+                f: async_writer,
+                name: std::any::type_name::<AF>(),
+                at
+            })
+        }
+    }
+}
+
+pub type OutputByteStream = Arc<RwLock<OutputByteStreamInner>>;
 
 
 impl VmAnyType for OutputByteStreamInner {

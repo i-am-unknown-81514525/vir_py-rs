@@ -49,7 +49,9 @@ macro_rules! fn_extern_arg_type_construct {
 fn_extern_arg_type_construct!(
     (Alloc, MemoryAllocator<'a>),
     (Machine, Arc<Mutex<&'b mut Machine<'a>>>),
-    (Recurse, RecurseRestricter<'a>)
+    (Recurse, RecurseRestricter<'a>),
+    // Special case
+    (Native, ())
 );
 
 pub struct LazyMapping<'a, 'b>(
@@ -80,7 +82,8 @@ impl<'a, 'b> LazyMapping<'a, 'b> {
                     None => remaining_lim,
                 });
                 FnExternArg::Recurse(config.as_lim(alloc))
-            }
+            },
+            FnExternArgType::Native => FnExternArg::Native(())
         }
     }
 

@@ -86,11 +86,19 @@ pub mod __private {
 
 #[macro_export]
 macro_rules! resolve {
-    ($(($name:expr, $item:ident)),*) => {
+    ($(
+        $(#[$meta:meta])*
+        ($name:expr, $item:ident)
+    ),* $(,)?) => {
 
         {
             let mut map: ::virtual_exec_type::HashMap<$crate::__private::String, $crate::__private::Arc<dyn ::virtual_exec_core::fn_extern::FnExtern + ::core::marker::Send + ::core::marker::Sync>> = ::virtual_exec_type::HashMap::new();
-            $($crate::add_item!(map, $name, $item);)*
+            $(
+                $(#[$meta])*
+                {
+                    $crate::add_item!(map, $name, $item);
+                }
+            )*
             ::virtual_exec_core::fn_extern::MethodResolver::new(
                 map
             )
