@@ -17,3 +17,5 @@ fn rm_ele<'a>(obj: Object<'a>, key: String) -> Result<AnyPtr<'a>, ExecutionError
         Err(ExecutionError::NonRecoverable(NonRecoverableError::ReferenceNotExistError(key)))
     }
 }
+
+extern_link!(RmEle, rm_ele, 2);

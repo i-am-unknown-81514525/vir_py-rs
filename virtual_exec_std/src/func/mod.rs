@@ -1,5 +1,3 @@
-mod rm_ele;
-
 macro_rules! func {
     ($name: ident) => {
         pub mod $name;
@@ -16,3 +14,5 @@ func!(arr_get_len);
 func!(concat);
 func!(create_obj);
 func!(dir);
+func!(to_str);
+func!(rm_ele);

@@ -34,6 +34,8 @@ pub static BASIC: LazyLock<MethodResolver> = LazyLock::new(|| {
         #[cfg(feature = "stream")]
         ("get_output_stream", GetOutputStream),
         #[cfg(feature = "stream")]
-        ("write_stream", WriteStream)
+        ("write_stream", WriteStream),
+        ("to_str", ToStr),
+        ("rm_ele", RmEle)
     )
 });
