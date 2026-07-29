@@ -3,6 +3,7 @@ use std::sync::{Arc};
 use async_lock::RwLock;
 use cfg_if::cfg_if;
 use tokio::io;
+#[cfg(feature = "tokio-io")]
 use tokio::io::AsyncWriteExt;
 use crate::stream::{OutputByteStream, OutputByteStreamInner};
 use virtual_exec_extern::*;
@@ -27,7 +28,7 @@ async fn print_async(vec: Vec<u8>) -> bool {
 }
 
 cfg_if!(
-    if #[cfg(feature = "tokio-io")] {
+    if #[cfg(all(feature = "tokio-io", feature = "async"))] {
         #[fn_extern_wrap]
         fn get_output_stream() -> Result<Native<OutputByteStream>, Error> {
             Ok(Native::from(Arc::new(RwLock::new(OutputByteStreamInner::new_async(print_sync, print_async)))))
@@ -35,7 +36,7 @@ cfg_if!(
     } else {
         #[fn_extern_wrap]
         fn get_output_stream() -> Result<Native<OutputByteStream>, Error> {
-            Ok(Native::from(Arc::new(RwLock::new(OutputByteStreamInner::new(print_sync)))))
+            Ok(Native::from(Arc::new(RwLock::new(OutputByteStreamInner::new_sync(print_sync)))))
         }
     }
 );

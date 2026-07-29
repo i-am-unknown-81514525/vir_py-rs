@@ -1,3 +1,5 @@
+#![cfg(feature = "stream")]
+
 use std::panic::Location;
 use std::pin::Pin;
 use std::sync::Arc;

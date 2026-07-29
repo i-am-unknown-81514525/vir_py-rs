@@ -2,6 +2,8 @@ pub mod func;
 
 #[cfg(feature = "sys")]
 pub mod sys;
+
+#[cfg(feature = "stream")]
 mod stream;
 
 use crate::func::*;
