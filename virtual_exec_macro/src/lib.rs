@@ -864,3 +864,11 @@ pub fn fn_extern_wrap_async(_: TokenStream, input: TokenStream) -> TokenStream {
         }
     }.into()
 }
+
+#[proc_macro]
+pub fn relative(input: TokenStream) -> TokenStream {
+    let input: TokenStream2 = input.into();
+    quote! {
+        concat!(env!("CARGO_MANIFEST_DIR"), "/", #input)
+    }.into()
+}
