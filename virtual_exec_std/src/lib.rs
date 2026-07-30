@@ -5,6 +5,7 @@ pub mod sys;
 
 #[cfg(feature = "stream")]
 mod stream;
+pub mod native;
 
 use crate::func::*;
 #[cfg(feature = "sys")]
