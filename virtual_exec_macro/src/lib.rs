@@ -1,7 +1,8 @@
-use proc_macro::TokenStream;
-use proc_macro2::{Ident, TokenStream as TokenStream2};
+use proc_macro::{Delimiter, TokenStream, TokenTree};
+use proc_macro2::{Ident, Span, TokenStream as TokenStream2};
 use quote::{ToTokens, quote};
 use std::ops::Deref;
+use std::path::PathBuf;
 use syn::spanned::Spanned;
 use syn::{FnArg, ItemFn, Pat, Type, parse_macro_input, parse_quote};
 use virtual_exec_core::sequential::instructions::{Instruction, SubscriptLoad};
@@ -865,10 +866,40 @@ pub fn fn_extern_wrap_async(_: TokenStream, input: TokenStream) -> TokenStream {
     }.into()
 }
 
+
+fn resolve_path(input: TokenStream) -> (PathBuf, Span) {
+    let lit: syn::LitStr = syn::parse2(input.into()).unwrap();
+    let span = lit.span();
+    let base = match span.local_file() {
+        Some(f) if f.is_absolute() => f
+            .ancestors()
+            .skip(1)
+            .find(|d| d.join("Cargo.toml").is_file())
+            .expect("no Cargo.toml above the literal's source file")
+            .to_path_buf(),
+        _ => PathBuf::from(std::env::var("CARGO_MANIFEST_DIR").unwrap()),
+    };
+    (base.join(lit.value()), span)
+}
+
 #[proc_macro]
-pub fn relative(input: TokenStream) -> TokenStream {
-    let input: TokenStream2 = input.into();
+pub fn import_parse_relative(input: TokenStream) -> TokenStream {
+    let (path, span) = resolve_path(input);
+    let path_str = path.display().to_string();
+    let content = match std::fs::read_to_string(path.clone()) {
+        Ok(v) => v,
+        Err(e) => return syn::Error::new(span, format!("error in {}: {e}", path.display()))
+            .to_compile_error().into()
+    };
+    let body: TokenStream2 = match content.parse() {
+        Ok(v) => v,
+        Err(e) => return syn::Error::new(span, format!("Failed to parse as token: {e}"))
+            .to_compile_error().into()
+    };
     quote! {
-        concat!(env!("CARGO_MANIFEST_DIR"), "/", #input)
+        {
+            const _: &'static str = ::core::include_str!(#path_str);
+            ::virtual_exec_macro::parse! { #body }
+        }
     }.into()
 }

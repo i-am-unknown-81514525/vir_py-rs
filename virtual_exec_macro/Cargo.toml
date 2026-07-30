@@ -18,7 +18,7 @@ virtual_exec_type = { path = "../virtual_exec_type", version = "0.5.0-alpha.1" }
 virtual_exec_parser = { path = "../virtual_exec_parser", version = "0.5.0-alpha.1" }
 virtual_exec_core = { path = "../virtual_exec_core", version = "0.5.0-alpha.1"}
 quote = "1.0"
-proc-macro2 = "1.0"
+proc-macro2 = { version = "1.0", features = ["span-locations"] }
 paste = "1.0.15"
 
 [dev-dependencies]
