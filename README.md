@@ -118,6 +118,7 @@ WIP Feature list:
 - [x] Support for any object
 - [ ] Support for instruction, state and memory exporting (Only on value that can be converted to OwnedValue)
 - [ ] WASM handling?
+- [ ] `__private` for path resolution from proc macro
 
 ### Sub-crate List:
 - [virtual_exec_type](https://crates.io/crates/virtual_exec_type)

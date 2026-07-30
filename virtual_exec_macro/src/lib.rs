@@ -903,3 +903,25 @@ pub fn import_parse_relative(input: TokenStream) -> TokenStream {
         }
     }.into()
 }
+
+#[proc_macro]
+pub fn import_compile_relative(input: TokenStream) -> TokenStream {
+    let (path, span) = resolve_path(input);
+    let path_str = path.display().to_string();
+    let content = match std::fs::read_to_string(path.clone()) {
+        Ok(v) => v,
+        Err(e) => return syn::Error::new(span, format!("error in {}: {e}", path.display()))
+            .to_compile_error().into()
+    };
+    let body: TokenStream2 = match content.parse() {
+        Ok(v) => v,
+        Err(e) => return syn::Error::new(span, format!("Failed to parse as token: {e}"))
+            .to_compile_error().into()
+    };
+    quote! {
+        {
+            const _: &'static str = ::core::include_str!(#path_str);
+            ::virtual_exec_macro::compile! { #body }
+        }
+    }.into()
+}

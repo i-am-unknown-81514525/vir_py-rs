@@ -1,12 +1,10 @@
-use virtual_exec_extern::import_parse;
-use virtual_exec_extern::module_extern::*;
+use virtual_exec_macro::import_compile_relative;
 
 macro_rules! load_vel {
     (std) => {
-        import_parse!(relative!("native_std/std.vel"))
+        import_compile_relative!("src/native_std/std.vel")
     };
 }
 fn _a() {
-    import_parse!(relative!("src/native_std/std.vel"));
-    relative!("src/native_std/std.vel");
+    load_vel!(std);
 }

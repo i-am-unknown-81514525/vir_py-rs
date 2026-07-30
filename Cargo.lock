@@ -231,18 +231,6 @@ dependencies = [
 ]
 
 [[package]]
-name = "cps"
-version = "0.3.1"
-source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "38f14bb9d67a210d9973c1a7b3c3af478d79d8de3f55ac76f4329e0e7a2d7d92"
-dependencies = [
- "litrs 0.4.2",
- "proc-macro2",
- "quote",
- "syn 2.0.117",
-]
-
-[[package]]
 name = "cpufeatures"
 version = "0.2.17"
 source = "registry+https://github.com/rust-lang/crates.io-index"
@@ -391,7 +379,7 @@ version = "0.2.12"
 source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "d4b8a88685455ed29a21542a33abd9cb6510b6b129abadabdcef0f4c55bc8f61"
 dependencies = [
- "litrs 1.0.0",
+ "litrs",
 ]
 
 [[package]]
@@ -749,15 +737,6 @@ name = "linux-raw-sys"
 version = "0.12.1"
 source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "32a66949e030da00e8c7d4434b251670a91556f4144941d37452769c25d58a53"
-
-[[package]]
-name = "litrs"
-version = "0.4.2"
-source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "f5e54036fe321fd421e10d732f155734c4e4afd610dd556d9a82833ab3ee0bed"
-dependencies = [
- "proc-macro2",
-]
 
 [[package]]
 name = "litrs"
@@ -1794,7 +1773,6 @@ name = "virtual_exec_extern"
 version = "0.5.0-alpha.2"
 dependencies = [
  "async-trait",
- "cps",
  "virtual_exec_core",
  "virtual_exec_macro",
  "virtual_exec_type",
@@ -1848,6 +1826,7 @@ dependencies = [
  "tokio",
  "virtual_exec_core",
  "virtual_exec_extern",
+ "virtual_exec_macro",
  "virtual_exec_type",
 ]
 
