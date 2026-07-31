@@ -1,25 +1,6 @@
 pub use virtual_exec_macro::{parse, import_parse_relative};
 
 
-#[macro_export]
-macro_rules! vel_parse {
-    (@parse $map:expr $(,)?) => {};
-    (@parse $map:expr, load $name:ident  $(;)?) => {
-        $crate::load_vel_module!(@resolve $map, $name $crate::load_vel_module!(@load_internal $name));
-    };
-    (@parse $map:expr, load $name:ident; $($later:tt)*) => {
-        $crate::load_vel_module!(@resolve $map, $name $crate::load_vel_module!(@load_internal $name));
-        $crate::vel_parse!(@parse $map, $($later)*);
-    };
-    (@parse $map:expr, $name:ident => { $($token:tt)* } $(;)?) => {
-        $crate::load_vel_module!(@resolve $map, $name $crate::load_vel_module!(@load_internal $($token)*));
-    };
-    (@parse $map:expr, $name:ident => { $($token:tt)* } $(;)? $later_name:ident $($later:tt)*) => {
-        $crate::load_vel_module!(@resolve $map, $name $crate::load_vel_module!(@load_internal $($token)*));
-        $crate::vel_parse!(@parse $map, $later_name $($later)*);
-    };
-}
-
 /// Produce a Hashmap<String, Module> for the loaded module
 #[macro_export]
 macro_rules! load_vel_module {
@@ -33,10 +14,25 @@ macro_rules! load_vel_module {
     (@resolve $map:expr, $name:ident $expression:expr) => {
         $map.insert(stringify!($name).to_string(), $expression);
     };
+    (@parse $map:expr $(,)?) => {};
+    (@parse $map:expr, load $name:ident  $(;)?) => {
+        $crate::load_vel_module!(@resolve $map, $name $crate::load_vel_module!(@load_internal $name));
+    };
+    (@parse $map:expr, load $name:ident; $($later:tt)*) => {
+        $crate::load_vel_module!(@resolve $map, $name $crate::load_vel_module!(@load_internal $name));
+        $crate::load_vel_module!(@parse $map, $($later)*);
+    };
+    (@parse $map:expr, $name:ident => { $($token:tt)* } $(;)?) => {
+        $crate::load_vel_module!(@resolve $map, $name $crate::load_vel_module!(@load_internal $($token)*));
+    };
+    (@parse $map:expr, $name:ident => { $($token:tt)* } $(;)? $later_name:ident $($later:tt)*) => {
+        $crate::load_vel_module!(@resolve $map, $name $crate::load_vel_module!(@load_internal $($token)*));
+        $crate::load_vel_module!(@parse $map, $later_name $($later)*);
+    };
     ($($token:tt)*) => {
         {
             let mut map: ::std::collections::HashMap<::std::string::String, ::virtual_exec_type::ast::core::Module> = ::std::collections::HashMap::new();
-            $crate::vel_parse!(@parse map, $($token)*);
+            $crate::load_vel_module!(@parse map, $($token)*);
             map
         }
     }
@@ -45,5 +41,10 @@ macro_rules! load_vel_module {
 fn _a() {
     load_vel_module!(
         load std;
+        test => {
+            fn a() {
+                return None;
+            }
+        }
     );
 }
