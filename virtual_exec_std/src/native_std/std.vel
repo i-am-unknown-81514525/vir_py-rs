@@ -1,0 +1,12 @@
+fn print(v) {
+    v = to_str(v);
+    stream = get_output_stream();
+    write_stream(stream, v);
+}
+
+fn println(v) {
+    v = to_str(v);
+    v = concat(v, "\n");
+    stream = get_output_stream();
+    write_stream(stream, v);
+}

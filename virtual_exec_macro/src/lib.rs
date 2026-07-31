@@ -638,9 +638,12 @@ fn insts_to_token(stmts: Vec<Instruction>) -> impl ToTokens {
         e.push(tokens);
     }
     quote! {
-        vec![
-            #(#e),*
-        ]
+        {
+            let _v: ::std::vec::Vec<::virtual_exec_core::sequential::instructions::Instruction> = vec![
+                #(#e),*
+            ];
+            _v
+        }
     }
 }
 

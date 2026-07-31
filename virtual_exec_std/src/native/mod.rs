@@ -1,10 +1,49 @@
-use virtual_exec_macro::import_compile_relative;
+pub use virtual_exec_macro::{parse, import_parse_relative};
 
-macro_rules! load_vel {
-    (std) => {
-        import_compile_relative!("src/native_std/std.vel")
+
+#[macro_export]
+macro_rules! vel_parse {
+    (@parse $map:expr $(,)?) => {};
+    (@parse $map:expr, load $name:ident  $(;)?) => {
+        $crate::load_vel_module!(@resolve $map, $name $crate::load_vel_module!(@load_internal $name));
+    };
+    (@parse $map:expr, load $name:ident; $($later:tt)*) => {
+        $crate::load_vel_module!(@resolve $map, $name $crate::load_vel_module!(@load_internal $name));
+        $crate::vel_parse!(@parse $map, $($later)*);
+    };
+    (@parse $map:expr, $name:ident => { $($token:tt)* } $(;)?) => {
+        $crate::load_vel_module!(@resolve $map, $name $crate::load_vel_module!(@load_internal $($token)*));
+    };
+    (@parse $map:expr, $name:ident => { $($token:tt)* } $(;)? $later_name:ident $($later:tt)*) => {
+        $crate::load_vel_module!(@resolve $map, $name $crate::load_vel_module!(@load_internal $($token)*));
+        $crate::vel_parse!(@parse $map, $later_name $($later)*);
     };
 }
+
+/// Produce a Hashmap<String, Module> for the loaded module
+#[macro_export]
+macro_rules! load_vel_module {
+    (@load_internal std) => {
+        $crate::native::import_parse_relative!("src/native_std/std.vel")
+    };
+    (@load_internal $($token:tt)*) => {
+        $crate::native::parse!($($token)*)
+    };
+
+    (@resolve $map:expr, $name:ident $expression:expr) => {
+        $map.insert(stringify!($name).to_string(), $expression);
+    };
+    ($($token:tt)*) => {
+        {
+            let mut map: ::std::collections::HashMap<::std::string::String, ::virtual_exec_type::ast::core::Module> = ::std::collections::HashMap::new();
+            $crate::vel_parse!(@parse map, $($token)*);
+            map
+        }
+    }
+}
+
 fn _a() {
-    load_vel!(std);
+    load_vel_module!(
+        load std;
+    );
 }
