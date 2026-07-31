@@ -7,8 +7,14 @@ macro_rules! load_vel_module {
     (@load_preload std) => {
         $crate::native::import_parse_relative!("src/native_std/std.vel")
     };
+    (@load_preload $unknown:ident) => {
+        compile_error!(concat!("Unknown module: \'", stringify!($unknown), "\'"))
+    };
     (@load_file $file:literal) => {
         $crate::native::import_parse_relative!($file)
+    };
+    (@load_file $v:tt) => {
+        compile_error!(concat!("Expected literal for filename, found \'", stringify!($v), "\'"))
     };
     (@load_internal $($token:tt)*) => {
         $crate::native::parse!($($token)*)
@@ -24,10 +30,10 @@ macro_rules! load_vel_module {
         $crate::load_vel_module!(@resolve $map, $name $crate::load_vel_module!(@load_preload $name));
         $crate::load_vel_module!(@parse $map, $($later)*);
     };
-    (@parse $map:expr, load_file $name:ident $path:literal  $(;)?) => {
+    (@parse $map:expr, load_file $name:ident $path:tt  $(;)?) => {
         $crate::load_vel_module!(@resolve $map, $name $crate::load_vel_module!(@load_file $path));
     };
-    (@parse $map:expr, load_file $name:ident $path:literal; $($later:tt)*) => {
+    (@parse $map:expr, load_file $name:ident $path:tt; $($later:tt)*) => {
         $crate::load_vel_module!(@resolve $map, $name $crate::load_vel_module!(@load_file $path));
         $crate::load_vel_module!(@parse $map, $($later)*);
     };
