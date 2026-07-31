@@ -462,7 +462,7 @@ impl<'a> MemoryAllocation<'a> {
                     if let OwnedValueInternal::Object(obj) = ptr.write_arc_safe().deref_mut() {
                         map.iter_mut().for_each(|(k, v)| {
                             obj.insert(k.clone(), obj_view_map[v].clone());
-                        })
+                        });
                     }
                 }
                 _ => {}
@@ -516,7 +516,7 @@ impl<'a> MemoryAllocation<'a> {
     }
 }
 
-impl<'a> Drop for MemoryAllocation<'a> {
+impl Drop for MemoryAllocation<'_> {
     fn drop(&mut self) {
         self.gc_weak();
         self._obj.iter().for_each(|obj| {
@@ -525,7 +525,7 @@ impl<'a> Drop for MemoryAllocation<'a> {
                     inner.inner = Value::None;
                 }
             }
-        })
+        });
     }
 }
 

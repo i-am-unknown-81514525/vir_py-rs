@@ -30,9 +30,7 @@ macro_rules! __binary_op_register {
                 arena: &$crate::mem::MemoryAllocator<'ctx>,
             ) -> Option<Result<$crate::mem::ValuePtr<'ctx>, $crate::error::TypeConversionError>>
             {
-                let lhs_val = <$lhs_type as $crate::base::Downcast>::from_value(lhs.clone())?;
-                let rhs_val = <$rhs_type as $crate::base::Downcast>::from_value(rhs.clone())?;
-                fn checked<F>(f: F) -> F
+                const fn checked<F>(f: F) -> F
                 where
                     F: Fn(
                         $lhs_type,
@@ -42,6 +40,8 @@ macro_rules! __binary_op_register {
                 {
                     f
                 }
+                let lhs_val = <$lhs_type as $crate::base::Downcast>::from_value(lhs.clone())?;
+                let rhs_val = <$rhs_type as $crate::base::Downcast>::from_value(rhs.clone())?;
                 let func = checked($func);
                 Some(match func(lhs_val, rhs_val) {
                     Ok(result) => result
@@ -104,8 +104,7 @@ macro_rules! __unary_op_register {
                 arena: &$crate::mem::MemoryAllocator<'ctx>,
             ) -> Option<Result<$crate::mem::ValuePtr<'ctx>, $crate::error::TypeConversionError>>
             {
-                let rhs_val = <$rhs_type as $crate::base::Downcast>::from_value(rhs.clone())?;
-                fn checked<F>(f: F) -> F
+                const fn checked<F>(f: F) -> F
                 where
                     F: Fn(
                         $rhs_type,
@@ -114,6 +113,7 @@ macro_rules! __unary_op_register {
                 {
                     f
                 }
+                let rhs_val = <$rhs_type as $crate::base::Downcast>::from_value(rhs.clone())?;
                 let func = checked($func);
                 Some(match func(rhs_val) {
                     Ok(result) => result
