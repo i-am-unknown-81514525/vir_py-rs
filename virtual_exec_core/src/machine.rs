@@ -313,4 +313,24 @@ impl<'a> Machine<'a> {
         machine.named_module_post_setup(name)?;
         Ok(machine)
     }
+
+    /// Note: The following code wouldn't allow runtime controlled execution behaviour(It will execute to the end or failed). Use with caution
+    /// This should only be used before user code being executed
+    pub fn load_modules_sync_all<'b>(&self, modules: HashMap<String, Module>) -> Result<Machine<'b>, ExecutionError> {
+        let mut machine = self.fork();
+        for (name, module) in modules.iter() {
+            machine = machine.push_named_module_sync_all(name, module)?;
+        };
+        Ok(machine)
+    }
+
+    /// Note: The following code wouldn't allow runtime controlled execution behaviour(It will execute to the end or failed). Use with caution
+    /// This should only be used before user code being executed
+    pub async fn load_modules_async_all<'b>(&self, modules: HashMap<String, Module>) -> Result<Machine<'b>, ExecutionError> {
+        let mut machine = self.fork();
+        for (name, module) in modules.iter() {
+            machine = machine.push_named_module_async_all(name, module).await?;
+        };
+        Ok(machine)
+    }
 }

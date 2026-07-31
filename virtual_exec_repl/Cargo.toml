@@ -18,6 +18,7 @@ virtual_exec_std = {path = "../virtual_exec_std", version = "0.5.0-alpha.1"}
 virtual_exec_macro = {path = "../virtual_exec_macro", version = "0.5.0-alpha.1"}
 virtual_exec_extern = {path = "../virtual_exec_extern", version = "0.5.0-alpha.1"}
 cfg-if = "1.0.4"
+async-lock = "3.4.2"
 
 [profile.release]
 codegen-units = 1 # Allows compiler to perform better optimization.

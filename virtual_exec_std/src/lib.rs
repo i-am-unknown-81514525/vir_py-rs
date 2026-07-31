@@ -4,7 +4,7 @@ pub mod func;
 pub mod sys;
 
 #[cfg(feature = "stream")]
-mod stream;
+pub mod stream;
 pub mod native;
 
 use crate::func::*;
@@ -27,10 +27,10 @@ pub static BASIC: LazyLock<MethodResolver> = LazyLock::new(|| {
         ("concat", Concat),
         ("create_obj", CreateObj),
         ("dir", Dir),
-        #[cfg(feature = "sys")]
-        ("print", Print),
-        #[cfg(feature = "sys")]
-        ("println", PrintLn),
+        // #[cfg(feature = "sys")]
+        // ("print", Print),
+        // #[cfg(feature = "sys")]
+        // ("println", PrintLn),
         #[cfg(feature = "stream")]
         ("get_output_stream", GetOutputStream),
         #[cfg(feature = "stream")]

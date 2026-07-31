@@ -27,7 +27,7 @@ use virtual_exec_core::sequential::exec::State;
 use virtual_exec_core::sequential::instructions::{InstForceOffset, Instruction};
 use virtual_exec_core::{compile, parse};
 use virtual_exec_macro::compile;
-use virtual_exec_std::BASIC;
+use virtual_exec_std::{load_vel_module, BASIC};
 use virtual_exec_type::error::{CriticalError, ExecutionError};
 
 /// Application state
@@ -51,6 +51,11 @@ fn main() -> io::Result<()> {
         OVERRIDE.clone(),
         BASIC.clone(),
     ])));
+    let mut machine = app.lock().unwrap().current_machine.load_modules_sync_all(load_vel_module!(load std)).unwrap();
+    machine.push_code("print = std.print; println = std.println;").unwrap();
+    machine.sync_run_all().unwrap();
+    app.lock().unwrap().current_machine = machine.fork();
+    app.lock().unwrap().rollback = machine;
     app.lock().unwrap().current_machine.machine.state = Ok(State::Terminated {end_of_instruction: true});
     app.lock().unwrap().rollback.machine.state = Ok(State::Terminated {end_of_instruction: true});
 
@@ -288,7 +293,7 @@ fn main() -> io::Result<()> {
                             let offset =
                                 app_obj.current_machine.machine.instructions.len() + pre_inst.len();
                             let print_inst =
-                                compile! {if _r != None {print(_r);}}.offset(offset as u64);
+                                compile! {if _r != None {std.print(_r);}}.offset(offset as u64);
                             pre_inst.extend(print_inst);
                         }
                         Some(e) => {

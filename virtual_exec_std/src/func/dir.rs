@@ -16,4 +16,4 @@ fn dir_sync<'a>(value: Object<'a>, Alloc(alloc): MemoryAllocator<'a>) -> Result<
     Ok(Arc::new(RwLock::new(dir.into_iter().map(|v| alloc.alloc(Value::String(v.into_boxed_str()))).collect::<Result<Vec<_>, _>>()?)))
 }
 
-extern_link!(Dir, dir_sync, 0);
+extern_link!(Dir, dir_sync, 1);
