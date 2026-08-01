@@ -198,9 +198,9 @@ fn expr_to_token(expr: Expr) -> impl ToTokens {
         Expr::Attr(value, attr) => {
             let value = expr_to_token(*value);
             quote! {
-                ::virtual_exec_type::ast::core::Expr::Attr {
+                ::virtual_exec_type::ast::core::Expr::Attribute {
                     value: Box::new(#value),
-                    #attr
+                    attr: (#attr).to_string()
                 }
             }
         }
@@ -239,9 +239,9 @@ fn assign_expr_to_token(expr: AssignExpr) -> impl ToTokens {
         AssignExpr::Attr(value, name) => {
             let value = expr_to_token(*value);
             quote! {
-                ::virtual_exec_type::ast::core::AssignExpr::Attr {
+                ::virtual_exec_type::ast::core::AssignExpr::Attribute {
                     value: Box::new(#value),
-                    name: (#name).to_string()
+                    attr: (#name).to_string()
                 }
             }
         }
