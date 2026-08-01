@@ -1,6 +1,6 @@
 use std::ops::Deref;
 use virtual_exec_core::fn_extern::fn_args::FnExternArg::Machine;
-use crate::stream::{OutputByteStream, OutputByteStreamInner};
+use crate::stream::write::{OutputByteStream, OutputByteStreamInner};
 use virtual_exec_extern::*;
 use virtual_exec_type::base::Native;
 use virtual_exec_type::error::{ExecutionError, RecoverableError};

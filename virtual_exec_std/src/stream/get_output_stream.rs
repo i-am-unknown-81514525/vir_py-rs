@@ -5,7 +5,7 @@ use cfg_if::cfg_if;
 use tokio::io;
 #[cfg(feature = "tokio-io")]
 use tokio::io::AsyncWriteExt;
-use crate::stream::{OutputByteStream, OutputByteStreamInner};
+use crate::stream::write::{OutputByteStream, OutputByteStreamInner};
 use virtual_exec_extern::*;
 use virtual_exec_type::base::Native;
 use virtual_exec_type::vm_type::Error;

@@ -7,7 +7,7 @@ use virtual_exec_type::base::{Native, ToStringSafe, TypeCast, VmAnyType};
 use virtual_exec_type::vm_type::*;
 use std::sync::{Arc};
 use async_lock::RwLock;
-use virtual_exec_std::stream::{OutputByteStream, OutputByteStreamInner};
+use virtual_exec_std::stream::write::{OutputByteStream, OutputByteStreamInner};
 use virtual_exec_extern::*;
 use virtual_exec_type::vm_type::Error;
 
