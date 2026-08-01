@@ -16,6 +16,7 @@ macro_rules! func {
 
 func!(get_output_stream);
 func!(write_stream);
+func!(read_stream);
 
 
 pub struct Named<W> {
@@ -117,7 +118,7 @@ pub mod read {
 
 
 
-
+    /// None should be returned when the stream have closed, Empty vector should be returned when no data is currently available
     pub type SyncReader  = Arc<dyn Fn() -> Option<Vec<u8>> + Send + Sync + 'static>;
     pub type AsyncReader = Arc<dyn Fn() -> Pin<Box<dyn Future<Output = Option<Vec<u8>>> + Send + 'static>> + Send + Sync + 'static>;
 
