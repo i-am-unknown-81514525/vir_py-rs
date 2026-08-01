@@ -27,7 +27,7 @@ use virtual_exec_core::sequential::exec::State;
 use virtual_exec_core::sequential::instructions::{InstForceOffset, Instruction};
 use virtual_exec_core::{compile, parse};
 use virtual_exec_macro::compile;
-use virtual_exec_std::{load_vel_module, BASIC};
+use virtual_exec_std::{load_vel_module, DEFAULT};
 use virtual_exec_type::error::{CriticalError, ExecutionError};
 
 /// Application state
@@ -49,7 +49,7 @@ fn main() -> io::Result<()> {
     // Create app
     let mut app = Arc::new(Mutex::new(AppState::new(vec![
         OVERRIDE.clone(),
-        BASIC.clone(),
+        DEFAULT.clone(),
     ])));
     let mut machine = app.lock().unwrap().current_machine.load_modules_sync_all(load_vel_module!(load std)).unwrap();
     machine.push_code("print = std.print; println = std.println;").unwrap();

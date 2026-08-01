@@ -17,7 +17,7 @@ use virtual_exec_core::fn_extern::{FnExternConstruct, MethodResolver};
 
 use virtual_exec_extern::resolve;
 
-pub static BASIC: LazyLock<MethodResolver> = LazyLock::new(|| {
+pub static DEFAULT: LazyLock<MethodResolver> = LazyLock::new(|| {
     resolve!(
         ("push_array", PushArray),
         ("pop_array", PopArray),
@@ -36,6 +36,23 @@ pub static BASIC: LazyLock<MethodResolver> = LazyLock::new(|| {
         #[cfg(feature = "stream")]
         ("write_stream", WriteStream),
         #[cfg(feature = "stream")]
+        ("read_stream", ReadStream),
+        ("to_str", ToStr),
+        ("rm_ele", RmEle)
+    )
+});
+
+
+pub static BASIC: LazyLock<MethodResolver> = LazyLock::new(|| {
+    resolve!(
+        ("push_array", PushArray),
+        ("pop_array", PopArray),
+        ("arr_get_from_idx", ArrGetFromIdx),
+        ("create_array", CreateArray),
+        ("arr_get_len", ArrGetLen),
+        ("concat", Concat),
+        ("create_obj", CreateObj),
+        ("dir", Dir),
         ("read_stream", ReadStream),
         ("to_str", ToStr),
         ("rm_ele", RmEle)

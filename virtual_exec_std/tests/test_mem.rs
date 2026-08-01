@@ -1,6 +1,6 @@
 use virtual_exec_core::sequential::exec::State;
 use virtual_exec_core::{Machine, compile, parse};
-use virtual_exec_std::BASIC;
+use virtual_exec_std::DEFAULT;
 use virtual_exec_type::error::{ExecutionError, NonRecoverableError};
 use virtual_exec_type::mem::OwnedValue;
 
@@ -11,7 +11,7 @@ fn test_mem() {
     println!("{:?}", compiled);
     for _ in 0..10000 {
         let mut machine =
-            Machine::new(compiled.clone(), 1 << 19, 500, vec![BASIC.clone()]).unwrap();
+            Machine::new(compiled.clone(), 1 << 19, 500, vec![DEFAULT.clone()]).unwrap();
         match machine.sync_run_all() {
             Ok(State::Ok) | Ok(State::Terminated {..}) => {}
             Ok(reason) => {
