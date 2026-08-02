@@ -393,6 +393,11 @@ impl<'a> MemoryAllocation<'a> {
             .ok_or(MemoryOutOfBoundError)
     }
 
+    pub fn get_eq_obj(&self, value: &ValuePtr<'a>) -> Result<ValuePtr<'a>, MemoryOutOfBoundError> {
+        let idx = self.get_idx_ref(&value)?;
+        Ok(self._obj.get(idx).ok_or(MemoryOutOfBoundError)?.upgrade().ok_or(MemoryOutOfBoundError)?)
+    }
+
     fn get_obj_construction(
         &self,
         value: &ValuePtr<'a>,

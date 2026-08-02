@@ -1,0 +1,21 @@
+[package]
+name = "virtual_exec_wasm"
+version = "0.5.0-alpha.2"
+edition = "2024"
+repository = "https://github.com/i-am-unknown-81514525/virtual_exec"
+authors = ["i-am-unknown-81514525" ]
+readme = "README.md"
+description = "WebAssembly binding library for virtual_exec"
+license = "GPL-3.0"
+
+[dependencies]
+js-sys = "0.3.103"
+serde = "1.0.229"
+serde-wasm-bindgen = "0.6.5"
+virtual_exec_core = { version = "0.5.0-alpha.2", path = "../virtual_exec_core", features = ["std", "parse"] }
+virtual_exec_type = { version = "0.5.0-alpha.2", path = "../virtual_exec_type" }
+wasm-bindgen = "0.2.126"
+wasm-bindgen-futures = "0.4.76"
+
+[lib]
+crate-type = ["cdylib", "rlib"]
