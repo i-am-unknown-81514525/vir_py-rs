@@ -13,7 +13,7 @@ pub struct ValuePtrWrapper {
 /// This will potentially destroy the lifetime data corresponded to the machine, which could allow
 /// a different machine allocator manage the current machine data
 /// Safety: ValuePtr owned all data except PhantomData
-unsafe fn extend_ptr<'a>(ptr: ValuePtr<'a>) -> ValuePtr<'static> {
+fn extend_ptr<'a>(ptr: ValuePtr<'a>) -> ValuePtr<'static> {
     unsafe {
         std::mem::transmute(ptr)
     }
@@ -26,4 +26,10 @@ fn shorten_ptr<'a>(ptr: ValuePtr<'static>, alloc: MemoryAllocator<'a>) -> Result
         std::mem::transmute(ptr)
     };
     alloc.lock_arc_safe().get_eq_obj(&ptr)
+}
+
+pub fn wrap_ptr(ptr: ValuePtr) -> ValuePtrWrapper {
+    ValuePtrWrapper {
+        inner: extend_ptr(ptr)
+    }
 }
