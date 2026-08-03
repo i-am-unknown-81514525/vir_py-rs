@@ -1,3 +1,5 @@
+pub mod alloc;
+
 use wasm_bindgen;
 use virtual_exec_type::error::MemoryOutOfBoundError;
 use virtual_exec_type::ext::SafeLockArcExt;

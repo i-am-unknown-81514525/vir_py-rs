@@ -1,8 +1,12 @@
+mod state;
+
 use std::fmt::format;
+use std::sync::Arc;
 use wasm_bindgen::JsValue;
 use wasm_bindgen::prelude::wasm_bindgen;
 use virtual_exec_core::{compile, parse, Machine};
 use virtual_exec_type::mem::ValuePtr;
+use crate::types::alloc::AllocatorWrapper;
 
 #[wasm_bindgen]
 pub struct MachineWrapper {
@@ -27,6 +31,12 @@ impl MachineWrapper {
             machine
         })
     }
+
+    #[wasm_bindgen]
+    pub fn get_alloc(&self) -> AllocatorWrapper {
+        AllocatorWrapper::new(Arc::clone(&self.machine.alloc))
+    }
+
 }
 
 
