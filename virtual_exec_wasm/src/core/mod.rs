@@ -6,6 +6,7 @@ use wasm_bindgen::JsValue;
 use wasm_bindgen::prelude::wasm_bindgen;
 use virtual_exec_core::{compile, parse, Machine};
 use virtual_exec_type::mem::ValuePtr;
+use crate::core::state::StateWrapper;
 use crate::types::alloc::AllocatorWrapper;
 
 #[wasm_bindgen]
@@ -37,6 +38,10 @@ impl MachineWrapper {
         AllocatorWrapper::new(Arc::clone(&self.machine.alloc))
     }
 
+    #[wasm_bindgen]
+    pub fn sync_run_once(&mut self) -> StateWrapper {
+        StateWrapper::from(self.machine.sync_run_once())
+    }
 }
 
 
