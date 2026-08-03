@@ -31,7 +31,13 @@ fn shorten_ptr<'a>(ptr: ValuePtr<'static>, alloc: MemoryAllocator<'a>) -> Result
 }
 
 pub fn wrap_ptr(ptr: ValuePtr) -> ValuePtrWrapper {
-    ValuePtrWrapper {
-        inner: extend_ptr(ptr)
+    ValuePtrWrapper::from(extend_ptr(ptr))
+}
+
+impl ValuePtrWrapper {
+    pub(crate) fn from(ptr: ValuePtr<'static>) -> ValuePtrWrapper {
+        Self {
+            inner: ptr
+        }
     }
 }
