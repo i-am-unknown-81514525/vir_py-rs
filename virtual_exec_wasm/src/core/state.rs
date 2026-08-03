@@ -60,7 +60,7 @@ impl From<Result<State<'static>, ExecutionError>> for StateWrapper {
                     additional_0: None,
                     additional_1: None,
                     additional_2: None,
-                    can_continue_executing: true
+                    can_continue_executing: false
                 }
             },
             Ok(State::Ok) =>  Self {
@@ -112,7 +112,7 @@ impl From<Result<(State<'static>, bool), ExecutionError>> for StateWrapper {
                     additional_0: None,
                     additional_1: None,
                     additional_2: None,
-                    can_continue_executing: true
+                    can_continue_executing: false
                 }
             },
             Ok((State::Ok, v)) =>  Self {
