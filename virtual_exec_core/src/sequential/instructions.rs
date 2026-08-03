@@ -8,92 +8,93 @@ use serde::{Deserialize, Serialize};
 use std::fmt::Display;
 
 #[derive(Clone, Debug, Serialize, Deserialize, PartialOrd, PartialEq)]
+#[repr(u8)]
 pub enum Instruction {
     // Binary Operations
     /// Take item from at the top of stack as `b`, then take item from top of stack as `a`
     /// Perform `a + b`
-    Add,
+    Add = 0,
     /// Take item from at the top of stack as `b`, then take item from top of stack as `a`
     /// Perform `a - b`
-    Sub,
+    Sub = 1,
     /// Take item from at the top of stack as `b`, then take item from top of stack as `a`
     /// Perform `a * b`
-    Mul,
+    Mul = 2,
     /// Take item from at the top of stack as `b`, then take item from top of stack as `a`
     /// Perform `a / b`
-    Div,
+    Div = 3,
     /// Take item from at the top of stack as `b`, then take item from top of stack as `a`
     /// Perform `a % b`
-    Mod,
+    Mod = 4,
     /// Take item from at the top of stack as `b`, then take item from top of stack as `a`
     /// Perform `a & b`
-    BitwiseAnd,
+    BitwiseAnd = 5,
     /// Take item from at the top of stack as `b`, then take item from top of stack as `a`
     /// Perform `a | b`
-    BitwiseOr,
+    BitwiseOr = 6,
     /// Take item from at the top of stack as `b`, then take item from top of stack as `a`
     /// Perform `a ^ b`
-    BitwiseXor,
+    BitwiseXor = 7,
     /// Take item from at the top of stack as `b`, then take item from top of stack as `a`
     /// Perform `a << b`
-    Shl,
+    Shl = 8,
     /// Take item from at the top of stack as `b`, then take item from top of stack as `a`
     /// Perform `a >> b`
-    Shr,
+    Shr = 9,
 
     // Unary Operations
-    UnaryPlus,
-    UnaryMinus,
-    Not,
-    BitwiseNot,
+    UnaryPlus = 10,
+    UnaryMinus = 11,
+    Not = 12,
+    BitwiseNot = 13,
 
     // Comparison Operations (Result push back to stack)
-    Eq,
-    NotEq,
-    Lt,
-    Lte,
-    Gt,
-    Gte,
+    Eq = 14,
+    NotEq = 15,
+    Lt = 16,
+    Lte = 17,
+    Gt = 18,
+    Gte = 19,
 
     // Assignment Operations
-    Assign,
+    Assign = 20,
 
     // Control Flow
     /// Take item from at the top of stack as `a`
     /// If `a` is not false and not 0, it jumps to the specify location and run as the next instruction
     /// Otherwise it continue to the next instruction
-    JmpNz(u64), // Jump when not zero
+    JmpNz(u64) = 21, // Jump when not zero
     /// Take item from at the top of stack as `a`
     /// If `a` is false or 0, it jumps to the specify location and run as the next instruction
     /// Otherwise it continue to the next instruction
-    JmpZ(u64), // Jump when zero
+    JmpZ(u64) = 22, // Jump when zero
     /// Jump unconditionally to the specific location and run as the next instruction
-    Jmp(u64),
+    Jmp(u64) = 23,
     /// Jump unconditionally to the DPtr at the top of the stack, create a new function stack frame
-    Call,
-    Ret,
+    Call = 24,
+    Ret = 25,
 
     // Load
-    LoadNone,
-    LoadLitFloat(f64),
-    LoadLitInt(i64),
-    LoadLitString(Box<str>),
-    LoadLitBool(bool),
-    ConstructArr(u64),
-    ConstructObj(u64),
-    LoadName(Box<str>),
-    LoadObjectAttr(Box<str>),
-    ResolveObject,
-    LoadDPtr(u64, usize),
+    LoadNone = 26,
+    LoadLitFloat(f64) = 27,
+    LoadLitInt(i64) = 28,
+    LoadLitString(Box<str>) = 29,
+    LoadLitBool(bool) = 30,
+    ConstructArr(u64) = 31,
+    ConstructObj(u64) = 32,
+    LoadName(Box<str>) = 33,
+    LoadObjectAttr(Box<str>) = 34,
+    ResolveObject = 35,
+    LoadDPtr(u64, usize) = 36,
 
     // External
-    Terminate,
-    Interrupt,
+    Terminate = 37,
+    Interrupt = 38,
 
     // Stack
-    Pop,
-    Swap,
-    Nop,
+    Pop = 39,
+    Swap = 40,
+    Nop = 41,
 }
 
 #[cfg(feature = "std")]
