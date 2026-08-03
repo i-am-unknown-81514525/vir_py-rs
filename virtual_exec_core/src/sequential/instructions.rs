@@ -3,11 +3,14 @@ use alloc::format;
 use alloc::string::{String, ToString};
 use alloc::vec::Vec;
 use serde::{Deserialize, Serialize};
+#[cfg(feature = "binary_inst")]
+use borsh_derive::{BorshSerialize, BorshDeserialize};
 
 #[cfg(feature = "std")]
 use std::fmt::Display;
 
 #[derive(Clone, Debug, Serialize, Deserialize, PartialOrd, PartialEq)]
+#[cfg_attr(feature = "binary_inst", derive(BorshSerialize, BorshDeserialize), borsh(use_discriminant = true))]
 #[repr(u8)]
 pub enum Instruction {
     // Binary Operations
