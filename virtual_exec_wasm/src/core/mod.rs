@@ -2,6 +2,7 @@ mod state;
 
 use std::fmt::format;
 use std::sync::Arc;
+use js_sys::Uint8Array;
 use wasm_bindgen::JsValue;
 use wasm_bindgen::prelude::wasm_bindgen;
 use virtual_exec_core::{compile, parse, Machine};
@@ -31,6 +32,15 @@ impl MachineWrapper {
         Ok(Self {
             machine
         })
+    }
+
+    #[wasm_bindgen]
+    pub fn load_bin(&mut self, code: &Uint8Array) -> Result<(), JsValue> {
+        let data: Vec<u8> = code.to_vec();
+        let code = virtual_exec_core::binary::import(&data.into())
+            .map_err(|e| js_sys::Error::new(&format!("Serialization error: {e:?}")))?;
+        self.machine.machine.instructions = code;
+        Ok(())
     }
 
     #[wasm_bindgen]
