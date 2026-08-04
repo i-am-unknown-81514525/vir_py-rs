@@ -11,9 +11,7 @@ use crate::core::state::StateWrapper;
 use crate::types::alloc::AllocatorWrapper;
 
 #[wasm_bindgen]
-pub struct MachineWrapper {
-    machine: Machine<'static>
-}
+pub struct MachineWrapper(Machine<'static>);
 
 #[wasm_bindgen]
 impl MachineWrapper {
@@ -25,9 +23,7 @@ impl MachineWrapper {
             inst_limit,
             vec![]
         ).map_err(|e| js_sys::Error::new(&format!("Memory error: {:?}", e)))?;
-        Ok(Self {
-            machine
-        })
+        Ok(Self(machine))
     }
 
     #[wasm_bindgen]
@@ -35,7 +31,7 @@ impl MachineWrapper {
         let data: Vec<u8> = code.to_vec();
         let code = virtual_exec_core::binary::import(&data.into())
             .map_err(|e| js_sys::Error::new(&format!("Serialization error: {e:?}")))?;
-        self.machine.machine.instructions = code;
+        self.0.machine.instructions = code;
         Ok(())
     }
 
@@ -45,20 +41,55 @@ impl MachineWrapper {
             &parse(code)
                 .map_err(|e| js_sys::Error::new(&format!("Parse error: {e:?}")))?
         );
-        self.machine.machine.instructions = code;
+        self.0.machine.instructions = code;
         Ok(())
     }
 
     #[wasm_bindgen]
     pub fn get_alloc(&self) -> AllocatorWrapper {
-        AllocatorWrapper::new(Arc::clone(&self.machine.alloc))
+        AllocatorWrapper::new(Arc::clone(&self.0.alloc))
     }
 
-    #[wasm_bindgen]
-    pub fn sync_run_once(&mut self) -> StateWrapper {
-        StateWrapper::from(self.machine.sync_run_once())
-    }
+
 }
+
+
+macro_rules! auto_impl_fn {
+    ($(($t:ty, $a:tt $($b:ident)? $(($($v:ident : $it:ty),*))? -> $rt:ty)),+ $(,)?) => {
+        $(
+            auto_impl_fn!($t, $a $($b)? $(($($v : $it),*))? -> $rt);
+        )*
+    };
+    ($t:ty, $name:ident $(($($v:ident : $it:ty),*))? -> $rt:ty) => {
+        #[wasm_bindgen]
+        impl $t {
+            #[wasm_bindgen]
+            pub fn $name(&mut self, $($($v : $it),*)?) -> $rt {
+                <$rt>::from(self.0.$name($($($v),*)?))
+            }
+        }
+    };
+
+    ($t:ty, async $name:ident $(($($v:ident : $it:ty),*))? -> $rt:ty) => {
+        #[wasm_bindgen]
+        impl $t {
+            #[wasm_bindgen]
+            pub async fn $name(&mut self, $($($v : $it),*)?) -> $rt {
+                <$rt>::from(self.0.$name($($($v),*)?).await)
+            }
+        }
+    };
+
+}
+
+auto_impl_fn!(
+    (MachineWrapper, sync_run_once -> StateWrapper),
+    (MachineWrapper, async async_run_once -> StateWrapper),
+    (MachineWrapper, sync_run_for(count: u64) -> StateWrapper),
+    (MachineWrapper, async async_run_for(count: u64) -> StateWrapper),
+    (MachineWrapper, sync_run_all -> StateWrapper),
+    (MachineWrapper, async async_run_all -> StateWrapper)
+);
 
 
 /// Safety: All data in machine is owned except PhantomData
