@@ -5,6 +5,10 @@ extern crate alloc;
 pub mod fn_extern;
 pub mod machine;
 pub mod sequential;
+
+#[cfg(feature = "binary_inst")]
+pub mod binary;
+
 pub use crate::machine::Machine;
 pub use crate::sequential::compile::compile;
 #[cfg(feature = "parse")]

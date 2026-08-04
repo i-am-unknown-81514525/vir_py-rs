@@ -18,10 +18,11 @@ proc-macro2 = "1.0"
 paste = "1.0.15"
 borsh = { version = "1.8.0", optional = true, features = ["borsh-derive", "bytes"], default-features = false }
 borsh-derive = {version = "1.8.0", optional = true}
+bytes = {version = "1.12.1", optional = true, default-features = false}
 
 [features]
 parse = ["virtual_exec_parser"]
 async = ["std"]
-std = ["async-lock/std", "virtual_exec_type/std", "borsh?/std"]
+std = ["async-lock/std", "virtual_exec_type/std", "borsh?/std", "bytes?/std"]
 default = ["parse", "async", "async-lock/default", "virtual_exec_type/default", "binary_inst", "std"]
-binary_inst = ["dep:borsh", "dep:borsh-derive"]
+binary_inst = ["dep:borsh", "dep:borsh-derive", "dep:bytes"]
