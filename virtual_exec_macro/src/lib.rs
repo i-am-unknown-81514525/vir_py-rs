@@ -928,3 +928,21 @@ pub fn import_compile_relative(input: TokenStream) -> TokenStream {
         }
     }.into()
 }
+
+#[proc_macro]
+pub fn import_bin_compile_relative(input: TokenStream) -> TokenStream {
+    let (path, span) = resolve_path(input);
+    let path_str = path.display().to_string();
+    let content = match std::fs::read(path.clone()) {
+        Ok(v) => v,
+        Err(e) => return syn::Error::new(span, format!("error in {}: {e}", path.display()))
+            .to_compile_error().into()
+    };
+    let insts = match virtual_exec_core::binary::import(&content.into()) {
+        Ok(v) => v,
+        Err(e) => return syn::Error::new(span, format!("Serialization error in {}: {e}", path.display()))
+            .to_compile_error().into()
+    };
+    let token_content = insts_to_token(insts);
+    quote! { #token_content }.into()
+}
