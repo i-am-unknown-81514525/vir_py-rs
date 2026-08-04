@@ -26,6 +26,10 @@ impl MachineWrapper {
         Ok(Self(machine))
     }
 
+    fn from(machine: Machine<'static>) -> Self {
+        Self(machine)
+    }
+
     #[wasm_bindgen]
     pub fn load_bin(&mut self, code: &Uint8Array) -> Result<(), JsValue> {
         let data: Vec<u8> = code.to_vec();
@@ -88,7 +92,8 @@ auto_impl_fn!(
     (MachineWrapper, sync_run_for(count: u64) -> StateWrapper),
     (MachineWrapper, async async_run_for(count: u64) -> StateWrapper),
     (MachineWrapper, sync_run_all -> StateWrapper),
-    (MachineWrapper, async async_run_all -> StateWrapper)
+    (MachineWrapper, async async_run_all -> StateWrapper),
+    (MachineWrapper, fork -> MachineWrapper)
 );
 
 
