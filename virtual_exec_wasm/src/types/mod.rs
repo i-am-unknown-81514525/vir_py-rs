@@ -1,4 +1,5 @@
 pub mod alloc;
+pub mod owned;
 
 use wasm_bindgen;
 use virtual_exec_type::error::MemoryOutOfBoundError;

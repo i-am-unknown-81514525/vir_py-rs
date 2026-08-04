@@ -8,7 +8,9 @@ use wasm_bindgen::prelude::wasm_bindgen;
 use virtual_exec_core::{compile, parse, Machine};
 use virtual_exec_type::mem::ValuePtr;
 use crate::core::state::StateWrapper;
+use crate::{auto_impl_fn, Dewrap};
 use crate::types::alloc::AllocatorWrapper;
+use crate::types::owned::OwnedValueWrapper;
 
 #[wasm_bindgen]
 pub struct MachineWrapper(Machine<'static>);
@@ -58,37 +60,7 @@ impl MachineWrapper {
 }
 
 
-macro_rules! auto_impl_fn {
-    ($(($t:ty, $a:tt $($b:ident)? $(($($v:ident : $it:ty),*))? -> $rt:ty)),+ $(,)?) => {
-        $(
-            auto_impl_fn!($t, $a $($b)? $(($($v : $it),*))? -> $rt);
-        )*
-    };
-    ($t:ty, $name:ident $(($($v:ident : $it:ty),*))? -> $rt:ty) => {
-        #[wasm_bindgen]
-        impl $t {
-            #[wasm_bindgen]
-            #[allow(unused_imports)]
-            pub fn $name(&mut self, $($($v : $it),*)?) -> $rt {
-                use $crate::Dewrap;
-                <$rt>::from(self.0.$name($($(($v).dewrap()),*)?))
-            }
-        }
-    };
 
-    ($t:ty, async $name:ident $(($($v:ident : $it:ty),*))? -> $rt:ty) => {
-        #[wasm_bindgen]
-        impl $t {
-            #[wasm_bindgen]
-            #[allow(unused_imports)]
-            pub async fn $name(&mut self, $($($v : $it),*)?) -> $rt {
-                use $crate::Dewrap;
-                <$rt>::from(self.0.$name($($(($v).dewrap()),*)?).await)
-            }
-        }
-    };
-
-}
 
 auto_impl_fn!(
     (MachineWrapper, sync_run_once -> StateWrapper),
@@ -97,7 +69,10 @@ auto_impl_fn!(
     (MachineWrapper, async async_run_for(count: u64) -> StateWrapper),
     (MachineWrapper, sync_run_all -> StateWrapper),
     (MachineWrapper, async async_run_all -> StateWrapper),
-    (MachineWrapper, fork -> MachineWrapper)
+    (MachineWrapper, fork -> MachineWrapper),
+    (MachineWrapper, eval_sync_all(code: &str) -> Result<OwnedValueWrapper, JsValue> |
+        |v| { OwnedValueWrapper::js_conv(v, "Expression evaluation error")}
+    )
 );
 
 
@@ -108,3 +83,8 @@ fn lifetime_transmute_machine<'a, 'b>(ptr: Machine<'a>) -> Machine<'b> {
     }
 }
 
+impl Dewrap<Machine<'static>> for MachineWrapper {
+    fn dewrap(self) -> Machine<'static> {
+        self.0
+    }
+}

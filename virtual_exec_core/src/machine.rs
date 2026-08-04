@@ -27,6 +27,7 @@ pub struct Machine<'a> {
     pub resolvers: Vec<MethodResolver>,
 }
 
+#[derive(Debug, Clone)]
 pub enum ExprEvalError {
     ExecutionError(ExecutionError),
     ParseError(ParseError)
