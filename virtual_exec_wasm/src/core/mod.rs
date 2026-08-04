@@ -28,10 +28,6 @@ impl MachineWrapper {
         Ok(Self(machine))
     }
 
-    fn from(machine: Machine<'static>) -> Self {
-        Self(machine)
-    }
-
     #[wasm_bindgen]
     pub fn load_bin(&mut self, code: &Uint8Array) -> Result<(), JsValue> {
         let data: Vec<u8> = code.to_vec();
@@ -59,6 +55,12 @@ impl MachineWrapper {
 
 }
 
+
+impl From<Machine<'static>> for MachineWrapper {
+    fn from(value: Machine<'static>) -> Self {
+        Self(value)
+    }
+}
 
 
 

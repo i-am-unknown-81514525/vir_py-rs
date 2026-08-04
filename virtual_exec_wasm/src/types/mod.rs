@@ -9,9 +9,7 @@ use virtual_exec_type::mem::{MemoryAllocator, ValuePtr};
 
 
 #[wasm_bindgen::prelude::wasm_bindgen]
-pub struct ValuePtrWrapper {
-    inner: ValuePtr<'static>
-}
+pub struct ValuePtrWrapper(ValuePtr<'static>);
 
 /// This will potentially destroy the lifetime data corresponded to the machine, which could allow
 /// a different machine allocator manage the current machine data
@@ -35,10 +33,8 @@ pub fn wrap_ptr(ptr: ValuePtr) -> ValuePtrWrapper {
     ValuePtrWrapper::from(extend_ptr(ptr))
 }
 
-impl ValuePtrWrapper {
-    pub(crate) fn from(ptr: ValuePtr<'static>) -> ValuePtrWrapper {
-        Self {
-            inner: ptr
-        }
+impl From<ValuePtr<'static>> for ValuePtrWrapper {
+    fn from(ptr: ValuePtr<'static>) -> ValuePtrWrapper {
+        Self(ptr)
     }
 }
