@@ -68,8 +68,10 @@ macro_rules! auto_impl_fn {
         #[wasm_bindgen]
         impl $t {
             #[wasm_bindgen]
+            #[allow(unused_imports)]
             pub fn $name(&mut self, $($($v : $it),*)?) -> $rt {
-                <$rt>::from(self.0.$name($($($v),*)?))
+                use $crate::Dewrap;
+                <$rt>::from(self.0.$name($($(($v).dewrap()),*)?))
             }
         }
     };
@@ -78,8 +80,10 @@ macro_rules! auto_impl_fn {
         #[wasm_bindgen]
         impl $t {
             #[wasm_bindgen]
+            #[allow(unused_imports)]
             pub async fn $name(&mut self, $($($v : $it),*)?) -> $rt {
-                <$rt>::from(self.0.$name($($($v),*)?).await)
+                use $crate::Dewrap;
+                <$rt>::from(self.0.$name($($(($v).dewrap()),*)?).await)
             }
         }
     };
