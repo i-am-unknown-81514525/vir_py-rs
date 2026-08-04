@@ -18,13 +18,9 @@ pub struct MachineWrapper {
 #[wasm_bindgen]
 impl MachineWrapper {
     #[wasm_bindgen(constructor)]
-    pub fn new(code: &str, memory_lim: usize, inst_limit: u64) -> Result<Self, JsValue> {
-        let inst = compile(
-            &parse(code)
-                .map_err(|e| js_sys::Error::new(&format!("Parse Error: {:?}", e)))?
-        );
+    pub fn new(memory_lim: usize, inst_limit: u64) -> Result<Self, JsValue> {
         let machine = Machine::new(
-            inst,
+            vec![],
             memory_lim,
             inst_limit,
             vec![]
@@ -39,6 +35,16 @@ impl MachineWrapper {
         let data: Vec<u8> = code.to_vec();
         let code = virtual_exec_core::binary::import(&data.into())
             .map_err(|e| js_sys::Error::new(&format!("Serialization error: {e:?}")))?;
+        self.machine.machine.instructions = code;
+        Ok(())
+    }
+
+    #[wasm_bindgen]
+    pub fn load_code(&mut self, code: &str) -> Result<(), JsValue> {
+        let code = virtual_exec_core::compile(
+            &parse(code)
+                .map_err(|e| js_sys::Error::new(&format!("Parse error: {e:?}")))?
+        );
         self.machine.machine.instructions = code;
         Ok(())
     }
