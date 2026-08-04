@@ -6,7 +6,7 @@ use js_sys::Uint8Array;
 use wasm_bindgen::JsValue;
 use wasm_bindgen::prelude::wasm_bindgen;
 use virtual_exec_core::{compile, parse, Machine};
-use virtual_exec_type::mem::ValuePtr;
+use virtual_exec_type::mem::{OwnedValue, ValuePtr};
 use crate::core::state::StateWrapper;
 use crate::{auto_impl_fn, Dewrap};
 use crate::types::alloc::AllocatorWrapper;
@@ -72,6 +72,9 @@ auto_impl_fn!(
     (MachineWrapper, fork -> MachineWrapper),
     (MachineWrapper, eval_sync_all(code: &str) -> Result<OwnedValueWrapper, JsValue> |
         |v| { OwnedValueWrapper::js_conv(v, "Expression evaluation error")}
+    ),
+    (MachineWrapper, get(name: &str) -> Option<OwnedValueWrapper> |
+        |x: Option<OwnedValue>| x.map(|y| y.into())
     )
 );
 
