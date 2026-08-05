@@ -1,4 +1,5 @@
 mod state;
+pub mod machine_ref;
 
 use std::fmt::format;
 use std::sync::Arc;
