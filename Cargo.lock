@@ -1848,6 +1848,7 @@ dependencies = [
  "borsh",
  "borsh-derive",
  "bytes",
+ "cfg-if",
  "paste",
  "proc-macro2",
  "serde",

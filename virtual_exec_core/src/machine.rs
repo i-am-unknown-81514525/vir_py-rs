@@ -6,6 +6,7 @@ use alloc::sync::Arc;
 use alloc::vec;
 use alloc::vec::Vec;
 use async_lock::RwLock;
+use cfg_if::cfg_if;
 use virtual_exec_parser::error::ParseError;
 use virtual_exec_parser::parser::parse_expr;
 use virtual_exec_type::ast::core::Module;
@@ -16,6 +17,25 @@ use virtual_exec_type::mem::{
 };
 use crate::sequential::compile::{compile_offset, GetInstruction};
 
+#[cfg(feature = "unsafe_check")]
+#[derive(Clone, Debug)]
+pub struct PtrAliveCheck(Arc<RwLock<bool>>);
+
+#[cfg(feature = "unsafe_check")]
+impl PtrAliveCheck {
+    pub fn new() -> Self {
+        Self(Arc::new(RwLock::new(true)))
+    }
+
+    pub fn is_alive(&self) -> bool {
+        *self.0.read_arc_safe()
+    }
+
+    pub fn clear(&self) -> () {
+        *self.0.write_arc_safe() = false;
+    }
+}
+
 /// The execution instance including the memory allocator and the instruction state machine
 #[derive(Debug, Clone)]
 pub struct Machine<'a> {
@@ -25,6 +45,8 @@ pub struct Machine<'a> {
     /// The instruction execution machine for the instance
     pub machine: InstStateMachine<'a>,
     pub resolvers: Vec<MethodResolver>,
+    #[cfg(feature = "unsafe_check")]
+    pub ptr_alive_check: PtrAliveCheck,
 }
 
 #[derive(Debug, Clone)]
@@ -85,6 +107,8 @@ impl<'a> Machine<'a> {
             alloc,
             machine,
             resolvers,
+            #[cfg(feature = "unsafe_check")]
+            ptr_alive_check: PtrAliveCheck::new(),
         })
     }
 
@@ -217,6 +241,8 @@ impl<'a> Machine<'a> {
             alloc: forked_alloc,
             machine: forked_inst_state_machine,
             resolvers: self.resolvers.clone(),
+            #[cfg(feature = "unsafe_check")]
+            ptr_alive_check: self.ptr_alive_check.clone(),
         }
     }
 
@@ -333,5 +359,16 @@ impl<'a> Machine<'a> {
             machine = machine.push_named_module_async_all(name, module).await?;
         };
         Ok(machine)
+    }
+}
+
+
+impl Drop for Machine<'_> {
+    fn drop(&mut self) {
+        cfg_if! {
+            if #[cfg(feature = "unsafe_check")] {
+                self.ptr_alive_check.clear();
+            }
+        }
     }
 }

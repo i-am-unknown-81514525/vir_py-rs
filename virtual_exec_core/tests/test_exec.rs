@@ -91,7 +91,7 @@ fn test_incorrect_argument_count() {
         "Should be error with incorrect argument count"
     );
     assert_eq!(
-        machine.machine.state.err(),
+        machine.machine.state.clone().err(),
         Some(ExecutionError::NonRecoverable(
             NonRecoverableError::IncorrectArgumentCountError
         )),
