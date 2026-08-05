@@ -1,5 +1,6 @@
 mod state;
 pub mod machine_ref;
+mod fn_extern;
 
 use std::fmt::format;
 use std::sync::Arc;
@@ -83,7 +84,19 @@ auto_impl_fn!(
 
 
 /// Safety: All data in machine is owned except PhantomData
-fn lifetime_transmute_machine<'a, 'b>(ptr: Machine<'a>) -> Machine<'b> {
+pub(crate) fn lifetime_transmute_machine<'a, 'b>(ptr: Machine<'a>) -> Machine<'b> {
+    unsafe {
+        std::mem::transmute(ptr)
+    }
+}
+
+pub(crate) fn lifetime_transmute_machine_ref<'a, 'b, 'c>(ptr: &'c Machine<'a>) ->&'c Machine<'b> {
+    unsafe {
+        std::mem::transmute(ptr)
+    }
+}
+
+pub(crate) fn lifetime_transmute_machine_ref_mut<'a, 'b, 'c>(ptr: &'c mut Machine<'a>) ->&'c mut Machine<'b> {
     unsafe {
         std::mem::transmute(ptr)
     }

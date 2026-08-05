@@ -1,14 +1,22 @@
 use std::ops::{Deref, DerefMut};
-use std::sync::Arc;
+use std::sync::{Arc};
+use async_lock::RwLock;
+use wasm_bindgen::JsValue;
 use wasm_bindgen::prelude::wasm_bindgen;
 use virtual_exec_core::Machine;
 use virtual_exec_core::machine::PtrAliveCheck;
+use virtual_exec_type::ext::{SafeReadArcExt, SafeWriteArcExt};
+use virtual_exec_type::mem::OwnedValue;
+use crate::auto_impl_fn;
 use crate::core::MachineWrapper;
+use crate::core::state::StateWrapper;
+use crate::types::owned::OwnedValueWrapper;
 
 #[wasm_bindgen]
 pub struct MachineRef(*mut Machine<'static>, PtrAliveCheck);
 
-pub struct CheckedMachineRef<'a>(&'a mut Machine<'static>);
+#[wasm_bindgen]
+pub struct CheckedMachineRef(*mut Machine<'static>, Arc<RwLock<bool>>);
 
 impl<'a> From<&'a mut Machine<'static>> for MachineRef {
     fn from(value: &'a mut Machine<'static>) -> Self {
@@ -19,31 +27,102 @@ impl<'a> From<&'a mut Machine<'static>> for MachineRef {
 }
 
 impl MachineRef {
-    pub fn with_guarded<'a, T>(&'a mut self, closure: impl FnOnce(CheckedMachineRef<'a>) -> T) -> Option<T> {
+    pub unsafe fn with_guarded<T>(&mut self, closure: impl FnOnce(CheckedMachineRef) -> T) -> Option<T> {
         if !self.1.is_alive() || self.0.is_null() {
             None
         } else {
-            let machine_ref = unsafe {
-                self.0.as_mut()?
-            };
-            let refence = CheckedMachineRef(&mut *machine_ref);
-            Some(closure(refence))
+            let lock = Arc::new(RwLock::new(true));
+            let mut refence = CheckedMachineRef(self.0.clone(), Arc::clone(&lock));
+            let v = closure(refence);
+            let _ = std::mem::replace(lock.write_arc_safe().deref_mut(), false);
+            Some(v)
         }
     }
 }
 
-impl<'a> Deref for CheckedMachineRef<'a> {
-    type Target = Machine<'static>;
-
-    #[inline(always)]
-    fn deref(&self) -> &Self::Target {
-        self.0
+impl CheckedMachineRef {
+    pub fn state(&self) -> bool {
+        *self.1.read_arc_safe()
     }
 }
 
-impl<'a> DerefMut for CheckedMachineRef<'a> {
-    #[inline(always)]
-    fn deref_mut(&mut self) -> &mut Self::Target {
-        self.0
-    }
+macro_rules! auto_impl_fn_injected {
+    ($(($t:ty, $a:tt $($b:ident)? $(($($v:ident : $it:ty),*))? -> $rt:ty $(| $f:expr)?)),+ $(,)?) => {
+        $(
+            auto_impl_fn_injected!($t, $a $($b)? $(($($v : $it),*))? -> $rt $(| $f)?);
+        )*
+    };
+    ($t:ty, $name:ident $(($($v:ident : $it:ty),*))? -> $rt:ty | $f:expr) => {
+        #[wasm_bindgen]
+        impl $t {
+            #[wasm_bindgen]
+            #[allow(unused_imports)]
+            pub fn $name(&mut self, $($($v : $it),*)?) -> $rt {
+                if !self.state() {
+                    panic!("Out of scope");
+                }
+                use $crate::Dewrap;
+                if self.0.is_null() {
+                    panic!("Null pointer");
+                }
+                let machine = unsafe {
+                    self.0.as_mut().expect("Unable to get mutable pointer")
+                };
+                ($f)(machine.$name($($(($v).dewrap()),*)?))
+            }
+        }
+    };
+
+    ($t:ty, async $name:ident $(($($v:ident : $it:ty),*))? -> $rt:ty | $f:expr) => {
+        #[wasm_bindgen]
+        impl $t {
+            #[wasm_bindgen]
+            #[allow(unused_imports)]
+            pub async fn $name(&mut self, $($($v : $it),*)?) -> $rt {
+                if !self.state() {
+                    panic!("Out of scope");
+                }
+                use $crate::Dewrap;
+                if self.0.is_null() {
+                    panic!("Null pointer");
+                }
+                let machine = unsafe {
+                    self.0.as_mut().expect("Unable to get mutable pointer")
+                };
+                ($f)(machine.$name($($(($v).dewrap()),*)?).await)
+            }
+        }
+    };
+
+     ($t:ty, $name:ident $(($($v:ident : $it:ty),*))? -> $rt:ty) => {
+         #[allow(non_camel_case_types)]
+         const _:() = {
+             type __internal = $rt;
+             auto_impl_fn_injected!($t, $name $(($($v : $it),*))? -> $rt | __internal::from);
+         };
+    };
+
+    ($t:ty, async $name:ident $(($($v:ident : $it:ty),*))? -> $rt:ty) => {
+        #[allow(non_camel_case_types)]
+        const _:() = {
+            type __internal = $rt;
+            auto_impl_fn_injected!($t, async $name $(($($v : $it),*))? -> $rt | __internal::from);
+        };
+    };
 }
+
+auto_impl_fn_injected!(
+    (CheckedMachineRef, sync_run_once -> StateWrapper),
+    (CheckedMachineRef, async async_run_once -> StateWrapper),
+    (CheckedMachineRef, sync_run_for(count: u64) -> StateWrapper),
+    (CheckedMachineRef, async async_run_for(count: u64) -> StateWrapper),
+    (CheckedMachineRef, sync_run_all -> StateWrapper),
+    (CheckedMachineRef, async async_run_all -> StateWrapper),
+    (CheckedMachineRef, fork -> MachineWrapper),
+    (CheckedMachineRef, eval_sync_all(code: &str) -> Result<OwnedValueWrapper, JsValue> |
+        |v| { OwnedValueWrapper::js_conv(v, "Expression evaluation error")}
+    ),
+    (CheckedMachineRef, get(name: &str) -> Option<OwnedValueWrapper> |
+        |x: Option<OwnedValue>| x.map(|y| y.into())
+    )
+);

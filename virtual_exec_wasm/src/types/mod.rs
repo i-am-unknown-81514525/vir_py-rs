@@ -2,9 +2,10 @@ pub mod alloc;
 pub mod owned;
 
 use wasm_bindgen;
+use wasm_bindgen::JsValue;
 use virtual_exec_type::error::MemoryOutOfBoundError;
 use virtual_exec_type::ext::SafeLockArcExt;
-use virtual_exec_type::mem::{MemoryAllocator, ValuePtr};
+use virtual_exec_type::mem::{MemoryAllocator, Value, ValuePtr};
 
 
 
@@ -14,7 +15,7 @@ pub struct ValuePtrWrapper(ValuePtr<'static>);
 /// This will potentially destroy the lifetime data corresponded to the machine, which could allow
 /// a different machine allocator manage the current machine data
 /// Safety: ValuePtr owned all data except PhantomData
-fn extend_ptr<'a>(ptr: ValuePtr<'a>) -> ValuePtr<'static> {
+pub(crate) fn extend_ptr<'a>(ptr: ValuePtr<'a>) -> ValuePtr<'static> {
     unsafe {
         std::mem::transmute(ptr)
     }
