@@ -32,7 +32,7 @@ impl MachineRef {
             None
         } else {
             let lock = Arc::new(RwLock::new(true));
-            let mut refence = CheckedMachineRef(self.0.clone(), Arc::clone(&lock));
+            let refence = CheckedMachineRef(self.0.clone(), Arc::clone(&lock));
             let v = closure(refence);
             let _ = std::mem::replace(lock.write_arc_safe().deref_mut(), false);
             Some(v)
