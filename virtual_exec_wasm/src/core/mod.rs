@@ -8,14 +8,20 @@ use js_sys::Uint8Array;
 use wasm_bindgen::JsValue;
 use wasm_bindgen::prelude::wasm_bindgen;
 use virtual_exec_core::{compile, parse, Machine};
-use virtual_exec_type::mem::{OwnedValue, ValuePtr};
+use virtual_exec_core::fn_extern::{FnExtern, MethodResolver};
+use virtual_exec_type::error::{CriticalError, ExecutionError};
+use virtual_exec_type::ext::SafeWriteArcExt;
+use virtual_exec_type::HashMap;
+use virtual_exec_type::mem::{Allocator, OwnedValue, Value, ValuePtr};
 use crate::core::state::StateWrapper;
 use crate::{auto_impl_fn, Dewrap};
+use crate::core::fn_extern::JsExternFuncSync;
+use crate::error::Error;
 use crate::types::alloc::AllocatorWrapper;
 use crate::types::owned::OwnedValueWrapper;
 
 #[wasm_bindgen]
-pub struct MachineWrapper(Machine<'static>);
+pub struct MachineWrapper(pub(crate) Machine<'static>);
 
 #[wasm_bindgen]
 impl MachineWrapper {
@@ -54,7 +60,19 @@ impl MachineWrapper {
         AllocatorWrapper::new(Arc::clone(&self.0.alloc))
     }
 
-
+    #[wasm_bindgen]
+    pub fn push_fn(&mut self, name: String, func: js_sys::Function, arg_len: usize) -> Result<(), JsValue> {
+        let mut map: HashMap<String, Arc<dyn FnExtern + Send + Sync>> = HashMap::new();
+        map.insert(name.clone(), Arc::new(JsExternFuncSync::from(func)));
+        self.0.resolvers.insert(0, MethodResolver::new(map));
+        let extern_ptr = self.0.alloc.alloc(Value::FnPtrExternal(name.clone().into_boxed_str(), arg_len))
+            .map_err(|e| e.to_js_error("Memory allocation failed on external function creation"))?;
+        let fn_stack_ref = self.0.machine.fn_stack_frame.get_mut(0)
+            .ok_or(ExecutionError::Critical(CriticalError::FnStackUnderflowError))
+            .map_err(|e| e.to_js_error("Missing function stack"))?;
+        fn_stack_ref.mapping.write_arc_safe().insert(name, extern_ptr);
+        Ok(())
+    }
 }
 
 
