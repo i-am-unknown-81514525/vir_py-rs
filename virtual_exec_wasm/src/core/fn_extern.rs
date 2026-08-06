@@ -129,14 +129,17 @@ pub(crate) fn get_id_link(value: &JsValue) -> (usize, HashMap<usize, (JsValue, G
         }  else {
             GraphLink::None
         };
-        discovered.into_iter().for_each(|(item, idx)| {
-            if pending.contains(&item) {
+        discovered.into_iter().for_each(|(e, idx)| {
+            if is_ptr_eq(&item, &e) {
+                return;
+            }
+            if pending.contains(&e) {
                 return;
             }
             if map2.contains_key(&idx) {
                 return;
             }
-            pending.push_back(item);
+            pending.push_back(e);
         });
         map2.insert(item_id, (item, link));
     }
