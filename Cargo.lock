@@ -1881,6 +1881,20 @@ dependencies = [
 ]
 
 [[package]]
+name = "virtual_exec_js"
+version = "0.5.0-alpha.2"
+dependencies = [
+ "async-lock",
+ "js-sys",
+ "serde",
+ "serde-wasm-bindgen",
+ "virtual_exec_core",
+ "virtual_exec_type",
+ "wasm-bindgen",
+ "wasm-bindgen-futures",
+]
+
+[[package]]
 name = "virtual_exec_macro"
 version = "0.5.0-alpha.2"
 dependencies = [
@@ -1942,20 +1956,6 @@ dependencies = [
  "cfg-if",
  "inventory",
  "paste",
-]
-
-[[package]]
-name = "virtual_exec_wasm"
-version = "0.5.0-alpha.2"
-dependencies = [
- "async-lock",
- "js-sys",
- "serde",
- "serde-wasm-bindgen",
- "virtual_exec_core",
- "virtual_exec_type",
- "wasm-bindgen",
- "wasm-bindgen-futures",
 ]
 
 [[package]]

@@ -1,5 +1,5 @@
 [package]
-name = "virtual_exec_wasm"
+name = "virtual_exec_js"
 version = "0.5.0-alpha.2"
 edition = "2024"
 repository = "https://github.com/i-am-unknown-81514525/virtual_exec"

@@ -12,14 +12,7 @@ license = "GPL-3.0"
 virtual_exec_core = {path = "virtual_exec_core", version = "0.5.0-alpha.1"}
 
 [workspace]
-members = [
-    "virtual_exec_type",
-    "virtual_exec_macro",
-    "virtual_exec_parser",
-    "virtual_exec_core",
-    "virtual_exec_extern",
-    "virtual_exec_std", "virtual_exec_repl", "virtual_exec_wasm",
-]
+members = ["virtual_exec_type", "virtual_exec_macro", "virtual_exec_parser", "virtual_exec_core", "virtual_exec_extern", "virtual_exec_std", "virtual_exec_repl", "virtual_exec_js"]
 
 [profile.release-nano]
 inherits = "release"
