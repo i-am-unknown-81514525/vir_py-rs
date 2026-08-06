@@ -69,7 +69,7 @@ impl FnExtern for JsExternFuncSync {
                 Some(Err(e)) => Err(ExecutionError::NonRecoverable(NonRecoverableError::GenericError)),
                 None => Err(ExecutionError::Critical(CriticalError::UnexpectedStateError))
             }?;
-            todo!()
+            clone_construct(&result, &machine.alloc)
         } else {
             Err(ExecutionError::NonRecoverable(NonRecoverableError::UnexpectedFunctionCall))
         }
@@ -142,7 +142,7 @@ pub(crate) fn get_id_link(value: &JsValue) -> (usize, HashMap<usize, (JsValue, G
     }
     (id, map2)
 }
-fn to_value_uninit(js: &JsValue) -> Value<'static> {
+fn to_value_uninit<'a>(js: &JsValue) -> Value<'a> {
     if let Some(v) = js.as_f64() {
         Value::Float(v)
     } else if let Some(v) = js.as_string() {
@@ -160,12 +160,12 @@ fn to_value_uninit(js: &JsValue) -> Value<'static> {
     }
 }
 
-fn clone_construct(value: &JsValue, alloc: MemoryAllocator<'static>) -> Result<ValuePtr<'static>, ExecutionError> {
+fn clone_construct<'a>(value: &JsValue, alloc: &MemoryAllocator<'a>) -> Result<ValuePtr<'a>, ExecutionError> {
     let (id, link_map) = get_id_link(&value);
-    let mut new_ref: HashMap<usize, (ValuePtr<'static>, GraphLink)> = link_map.into_iter()
+    let mut new_ref: HashMap<usize, (ValuePtr<'a>, GraphLink)> = link_map.into_iter()
         .map(|(k, v)| Ok((k, (alloc.alloc(to_value_uninit(&v.0))?, v.1))))
-        .collect::<Result<HashMap<usize, (ValuePtr<'static>, GraphLink)>, MemoryError>>()?;
-    let immutable: HashMap<usize, ValuePtr<'static>> = new_ref.iter().map(|(k, v)| (k.clone(), v.0.clone())).collect();
+        .collect::<Result<HashMap<usize, (ValuePtr<'a>, GraphLink)>, MemoryError>>()?;
+    let immutable: HashMap<usize, ValuePtr<'a>> = new_ref.iter().map(|(k, v)| (k.clone(), v.0.clone())).collect();
     for (k, (v, link)) in new_ref.iter_mut() {
         match link {
             GraphLink::Object(map) => {
