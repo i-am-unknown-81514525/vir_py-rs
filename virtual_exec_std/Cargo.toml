@@ -18,6 +18,7 @@ cfg-if = "1.0.4"
 async-trait = { version = "0.1.89", optional = true }
 getrandom = {version = "0.4.2", optional = true}
 virtual_exec_macro = { version = "0.5.0-alpha.2", path = "../virtual_exec_macro" }
+num-traits = "0.2.19"
 
 [features]
 sys = []

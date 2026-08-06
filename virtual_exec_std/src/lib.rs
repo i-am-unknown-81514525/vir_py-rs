@@ -38,7 +38,8 @@ pub static DEFAULT: LazyLock<MethodResolver> = LazyLock::new(|| {
         #[cfg(feature = "stream")]
         ("read_stream", ReadStream),
         ("to_str", ToStr),
-        ("rm_ele", RmEle)
+        ("rm_ele", RmEle),
+        ("int", Int)
     )
 });
 
@@ -55,6 +56,7 @@ pub static BASIC: LazyLock<MethodResolver> = LazyLock::new(|| {
         ("dir", Dir),
         ("read_stream", ReadStream),
         ("to_str", ToStr),
-        ("rm_ele", RmEle)
+        ("rm_ele", RmEle),
+        ("int", Int)
     )
 });

@@ -16,3 +16,4 @@ func!(create_obj);
 func!(dir);
 func!(to_str);
 func!(rm_ele);
+func!(int);

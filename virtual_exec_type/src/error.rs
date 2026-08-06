@@ -38,6 +38,8 @@ pub enum NonRecoverableError {
     GenericError,
     RecursionError,
     NonRecoveredRecoverableError(RecoverableError),
+    OverflowError,
+    UnderflowError,
 }
 
 #[derive(Clone, Debug, PartialOrd, PartialEq, Ord, Eq)]

@@ -1926,6 +1926,7 @@ dependencies = [
  "async-trait",
  "cfg-if",
  "getrandom 0.4.3",
+ "num-traits",
  "tokio",
  "virtual_exec_core",
  "virtual_exec_extern",
