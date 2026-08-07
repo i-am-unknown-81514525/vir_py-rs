@@ -251,6 +251,21 @@ fn to_owned_init_transform(ptr: &ValuePtr) -> OwnedValue {
     }))
 }
 
+fn to_valur_ptr_uninit<'a>(value: &OwnedValue, alloc: &MemoryAllocator<'a>) -> Result<ValuePtr<'a>, MemoryError> {
+    alloc.alloc(match value.read_arc_safe().deref() {
+        OwnedValueInternal::Int(x) => Value::Int(*x),
+        OwnedValueInternal::Float(x) => Value::Float(*x),
+        OwnedValueInternal::Bool(b) => Value::Bool(*b),
+        OwnedValueInternal::String(s) => Value::String(s.clone()),
+        OwnedValueInternal::None => Value::None,
+        OwnedValueInternal::Collection(_) => Value::Collection(Arc::new(RwLock::new(vec![]))),
+        OwnedValueInternal::Object(_) => Value::Object(Arc::new(RwLock::new(HashMap::new()))),
+        OwnedValueInternal::Error(e) => Value::Error(e.clone()),
+        OwnedValueInternal::DPtr(loc, arg_len) => Value::DPtr(*loc, *arg_len),
+        OwnedValueInternal::FnPtrExternal(name, arg_len) => Value::FnPtrExternal(name.clone(), *arg_len),
+    })
+}
+
 fn to_empty_collection<'a, 'b>(ptr: &ValuePtr<'a>) -> Value<'b> {
     match &ptr.read_arc_safe().inner {
         Value::Int(x) => Value::Int(*x),
@@ -296,6 +311,48 @@ pub fn get_all_owned_value(value: OwnedValue) -> Vec<OwnedValue> {
         }
     }
     list_all
+}
+
+pub fn deconstruct_owned_value<'a>(value: OwnedValue, alloc: MemoryAllocator<'a>) -> Result<ValuePtr<'a>, MemoryError> {
+    let all = get_all_owned_value(value);
+    let mixed: Vec<(OwnedValue, ValuePtr<'a>)> = all
+        .iter()
+        .map(
+            |x| {
+                let ptr = to_valur_ptr_uninit(x, &alloc)?;
+                Ok((x.clone(), ptr))
+            }
+        ).collect::<Result<_, MemoryError>>()?;
+    let mut immutable: Vec<ValuePtr<'a>> = mixed.iter().map(|x| x.1.clone()).collect::<Vec<_>>();
+    for (owned, ptr) in mixed.iter() {
+        let v = owned.read_arc_safe();
+        let get_idx = |x| all.iter().position(|y| Arc::ptr_eq(x, y));
+        match v.clone() {
+            OwnedValueInternal::Collection(c) => {
+                let idx = c.iter().map(get_idx).collect::<Option<Vec<_>>>().expect("All element should exist in all");
+                let mut vec = ptr.as_collections().unwrap().write_arc_safe();
+                idx.into_iter().for_each(|i| 
+                    vec.push(immutable.get(i).expect("Index should exist in immutable as it is collected from get_idx").clone())
+                );
+            },
+            OwnedValueInternal::Object(o) => {
+                let idx_map = o.iter()
+                .map(|(k, v)| get_idx(v).map(|v| (k.clone(), v)))
+                .collect::<Option<HashMap<String, usize>>>().expect("All element should exist in all");
+                let mut map = ptr.as_object().unwrap().write_arc_safe();
+                idx_map.into_iter().for_each(|(k, i)| 
+                    {
+                        let ptr: ValuePtr<'a> = immutable.get(i).expect("Index should exist in immutable as it is collected from get_idx").clone();
+                        map.insert(k, ptr);
+                        ()
+                    }
+                );
+            },
+            _ => {}
+        }
+    };
+    return Ok(immutable.swap_remove(0));
+
 }
 
 #[derive(Debug)]
