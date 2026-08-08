@@ -2,6 +2,7 @@ use crate::error::{ExecutionError, NonRecoverableError};
 use crate::mem::MemoryAllocator;
 use alloc::sync::Arc;
 use async_lock::Mutex;
+use crate::ext::SafeLockArcExt;
 
 #[derive(Copy, Clone, Debug, PartialEq, Eq, PartialOrd, Ord)]
 pub struct RecurseConfig {
@@ -70,7 +71,7 @@ impl<'a> RecurseRestricter<'a> {
     }
 
     pub fn consume_inst(&self, amount: u64) -> Result<(), RecursionError> {
-        let mut v = self.curr_inst.lock_arc_blocking();
+        let mut v = self.curr_inst.lock_arc_safe();
         let value = v.checked_add(amount).ok_or(RecursionError)?;
         *v = value;
         if let Some(inst_lim) = self.config.inst_limit
@@ -84,7 +85,7 @@ impl<'a> RecurseRestricter<'a> {
     pub fn consume_mem(&self, amount: usize) -> Result<(), RecursionError> {
         let value;
         {
-            let mut v = self.curr_mem.lock_arc_blocking();
+            let mut v = self.curr_mem.lock_arc_safe();
             value = v.checked_add(amount).ok_or(RecursionError)?;
             *v = value;
             if let Some(mem_lim) = self.config.mem_limit
@@ -94,7 +95,7 @@ impl<'a> RecurseRestricter<'a> {
             }
         };
         self.alloc
-            .lock_arc_blocking()
+            .lock_arc_safe()
             .check_alloc_err(value)
             .map_err(|_| RecursionError)?;
         Ok(())

@@ -121,7 +121,7 @@ impl ToStringSafe for Value<'_> {
             Value::Any(t) => {
                 let name = (move || {
                     cfg_if! {
-                    if #[cfg(feature = "std")] {
+                    if #[cfg(all(feature = "std", not(target_family = "wasm")))] {
                         t.read_blocking().type_name()
                     } else {
                         t.try_read().expect("Deadlock!").type_name()
@@ -405,7 +405,7 @@ impl<'ctx> Upcast<'ctx> for AnyType {
 macro_rules! read_any {
     ($v:expr) => {{
         cfg_if! {
-            if #[cfg(feature = "std")] { $v.read_blocking() }
+            if #[cfg(all(feature = "std", not(target_family = "wasm")))] { $v.read_blocking() }
             else { $v.try_read().expect("Deadlock!") }
         }
     }};

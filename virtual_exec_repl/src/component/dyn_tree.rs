@@ -10,6 +10,7 @@ use ratatui::{
     widgets::{Paragraph, Widget, Wrap},
 };
 use virtual_exec_type::base::TypeCast;
+use virtual_exec_type::ext::SafeReadArcExt;
 use virtual_exec_type::vm_type::AnyPtr;
 
 /// A node in the tree
@@ -35,9 +36,9 @@ impl<'b> TreeNode<'b> {
     /// Check if this node has children
     pub fn has_children(&self) -> bool {
         if let Some(obj) = self.data.as_object() {
-            obj.read_arc_blocking().len() > 0
+            obj.read_arc_safe().len() > 0
         } else if let Some(arr) = self.data.as_collections() {
-            arr.read_arc_blocking().len() > 0
+            arr.read_arc_safe().len() > 0
         } else {
             false
         }
@@ -46,13 +47,13 @@ impl<'b> TreeNode<'b> {
     pub fn get_children(&self) -> Vec<TreeNode<'b>> {
         if let Some(obj) = self.data.as_object() {
             let pre_id = format!("{}.", self.id);
-            obj.read_arc_blocking()
+            obj.read_arc_safe()
                 .iter()
                 .map(|x| TreeNode::new(pre_id.clone() + x.0, x.0.clone(), x.1.clone()))
                 .collect()
         } else if let Some(arr) = self.data.as_collections() {
             let pre_id = format!("{}.", self.id);
-            arr.read_arc_blocking()
+            arr.read_arc_safe()
                 .iter()
                 .enumerate()
                 .map(|(i, x)| {

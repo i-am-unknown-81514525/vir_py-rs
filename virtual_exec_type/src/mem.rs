@@ -561,12 +561,12 @@ impl<'a> MemoryAllocation<'a> {
                 OwnedValueConstruction::List(vec) => vec_items[idx]
                     .as_collections()
                     .unwrap()
-                    .write_arc_blocking()
+                    .write_arc_safe()
                     .extend(vec.iter().map(|x| vec_items[*x].clone())),
                 OwnedValueConstruction::Dict(map) => vec_items[idx]
                     .as_object()
                     .unwrap()
-                    .write_arc_blocking()
+                    .write_arc_safe()
                     .extend(map.iter().map(|(k, v)| (k.clone(), vec_items[*v].clone()))),
                 OwnedValueConstruction::None => {}
             }
@@ -633,7 +633,7 @@ impl<'a> GetSize for Value<'a> {
             Value::FnPtrExternal(f, _) => f.len() + NODE_OVERHEAD,
             Value::Any(v) => (move || {
                 cfg_if! {
-                if #[cfg(feature = "std")] {
+                if #[cfg(all(feature = "std", not(target_family = "wasm")))] {
                     v.read_blocking().get_size()
                 } else {
                     v.try_read().expect("Deadlock!").get_size()

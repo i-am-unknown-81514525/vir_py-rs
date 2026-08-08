@@ -3,6 +3,7 @@ use alloc::sync::Arc;
 use async_lock::Mutex;
 use virtual_exec_type::HashMap;
 use virtual_exec_type::config::recurse::{RecurseConfig, RecurseRestricter};
+use virtual_exec_type::ext::{SafeLockArcExt, SafeLockExt};
 use virtual_exec_type::mem::MemoryAllocator;
 
 macro_rules! fn_extern_arg_type_construct {
@@ -69,11 +70,11 @@ impl<'a, 'b> LazyMapping<'a, 'b> {
         arg: FnExternArgType,
     ) -> FnExternArg<'a, 'b> {
         match arg {
-            FnExternArgType::Alloc => FnExternArg::Alloc(machine.lock_blocking().alloc.clone()),
+            FnExternArgType::Alloc => FnExternArg::Alloc(machine.lock_arc_safe().alloc.clone()),
             FnExternArgType::Machine => FnExternArg::Machine(machine),
             FnExternArgType::Recurse => {
                 let (remaining_lim, alloc) = {
-                    let m = machine.lock_blocking();
+                    let m = machine.lock_arc_safe();
                     (m.machine.lim, m.alloc.clone())
                 };
                 let mut config = RecurseConfig::default();
@@ -96,8 +97,8 @@ impl<'a, 'b> LazyMapping<'a, 'b> {
 
     pub fn settle_recurse_cost(&self) {
         if let Some(FnExternArg::Recurse(restricter)) = self.1.get(&FnExternArgType::Recurse) {
-            let consumed = *restricter.curr_inst.lock_arc_blocking();
-            let mut m = self.0.lock_blocking();
+            let consumed = *restricter.curr_inst.lock_arc_safe();
+            let mut m = self.0.lock_arc_safe();
             m.machine.lim = m.machine.lim.saturating_sub(consumed);
         }
     }

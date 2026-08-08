@@ -516,7 +516,7 @@ impl<'ctx> InstStateMachine<'ctx> {
                     ));
                     return self.state.clone();
                 }
-                self.alloc.lock_arc_blocking().check_alloc_err(len as usize * 8)?;
+                self.alloc.lock_arc_safe().check_alloc_err(len as usize * 8)?;
                 let mut arr = Vec::with_capacity(len as usize);
                 for _ in 0..len {
                     arr.push(self.pop_get()?);
@@ -799,8 +799,8 @@ impl<'ctx> InstStateMachine<'ctx> {
     }
 
     pub fn fork<'alt>(&self) -> InstStateMachine<'alt> {
-        self.alloc.lock_blocking().gc_weak();
-        let vals = self.alloc.lock_arc_blocking().fork();
+        self.alloc.lock_arc_safe().gc_weak();
+        let vals = self.alloc.lock_arc_safe().fork();
         let new_alloc: MemoryAllocator<'alt> = vals.0;
         let vec_items: Vec<ValuePtr<'alt>> = vals.1;
         let new_frames: Vec<FnStackFrame<'alt>> = self
@@ -815,14 +815,14 @@ impl<'ctx> InstStateMachine<'ctx> {
                         .iter()
                         .map(|entry| {
                             let idx: usize =
-                                self.alloc.lock_arc_blocking().get_idx_ref(entry.1).unwrap();
+                                self.alloc.lock_arc_safe().get_idx_ref(entry.1).unwrap();
                             (entry.0.clone(), vec_items[idx].clone())
                         })
                         .collect::<HashMap<String, ValuePtr<'alt>>>(),
                 )),
                 _acct: match &frame._acct {
                     Some(e) => Some(
-                        vec_items[self.alloc.lock_arc_blocking().get_idx_ref(&e).unwrap()].clone(),
+                        vec_items[self.alloc.lock_arc_safe().get_idx_ref(&e).unwrap()].clone(),
                     ),
                     None => None,
                 },
@@ -834,7 +834,7 @@ impl<'ctx> InstStateMachine<'ctx> {
                     s.clone(),
                     a.iter()
                         .map(|a| {
-                            vec_items[self.alloc.lock_arc_blocking().get_idx_ref(a).unwrap()]
+                            vec_items[self.alloc.lock_arc_safe().get_idx_ref(a).unwrap()]
                                 .clone()
                         })
                         .collect(),
@@ -854,7 +854,7 @@ impl<'ctx> InstStateMachine<'ctx> {
                 item: match &x.item {
                     StackItem::AttrReference(attr_ref) => StackItem::AttrReference((
                         attr_ref.0.as_ref().map(|x| {
-                            vec_items[self.alloc.lock_arc_blocking().get_idx_ref(x).unwrap()]
+                            vec_items[self.alloc.lock_arc_safe().get_idx_ref(x).unwrap()]
                                 .clone()
                         }),
                         attr_ref.1.clone(),
@@ -862,20 +862,20 @@ impl<'ctx> InstStateMachine<'ctx> {
                     StackItem::IdxReference(idx_ref) => StackItem::IdxReference((
                         vec_items[self
                             .alloc
-                            .lock_arc_blocking()
+                            .lock_arc_safe()
                             .get_idx_ref(&idx_ref.0)
                             .unwrap()]
                         .clone(),
                         idx_ref.1.clone(),
                     )),
                     StackItem::Value(value) => StackItem::Value(
-                        vec_items[self.alloc.lock_arc_blocking().get_idx_ref(value).unwrap()]
+                        vec_items[self.alloc.lock_arc_safe().get_idx_ref(value).unwrap()]
                             .clone(),
                     ),
                 },
                 _acct: vec_items[self
                     .alloc
-                    .lock_arc_blocking()
+                    .lock_arc_safe()
                     .get_idx_ref(&x._acct)
                     .unwrap()]
                 .clone(),

@@ -4,6 +4,7 @@ use virtual_exec_extern::*;
 use virtual_exec_type::vm_type::*;
 use virtual_exec_type::base::{ToStringSafe, TypeCast};
 use virtual_exec_type::error::{ExecutionError, NonRecoverableError};
+use virtual_exec_type::ext::SafeReadArcExt;
 
 #[fn_extern_wrap]
 fn to_str<'a>(str: AnyPtr<'a>, Recurse(recurse): _) -> Result<String, Error> {
@@ -11,7 +12,7 @@ fn to_str<'a>(str: AnyPtr<'a>, Recurse(recurse): _) -> Result<String, Error> {
         Ok(s)
     } else {
         Ok(str
-            .read_arc_blocking()
+            .read_arc_safe()
             .to_string_safe(recurse)
             .map_err(|e| into!(e, ExecutionError))?)
     }

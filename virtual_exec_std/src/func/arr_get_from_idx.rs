@@ -1,10 +1,11 @@
 use virtual_exec_extern::*;
 use virtual_exec_type::vm_type::*;
 use virtual_exec_type::error::{ExecutionError, NonRecoverableError};
+use virtual_exec_type::ext::SafeWriteArcExt;
 
 #[fn_extern_wrap]
 fn arr_get_from_idx<'a>(array: Collection<'a>, idx: Integer) -> Result<AnyPtr<'a>, Error> {
-    array.write_arc_blocking().get(idx as usize).ok_or(ExecutionError::NonRecoverable(NonRecoverableError::IndexOutOfRangeError)).map(|x| x.clone())
+    array.write_arc_safe().get(idx as usize).ok_or(ExecutionError::NonRecoverable(NonRecoverableError::IndexOutOfRangeError)).map(|x| x.clone())
 }
 
 extern_link!(ArrGetFromIdx, arr_get_from_idx, 2);
