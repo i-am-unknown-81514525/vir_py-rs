@@ -14,13 +14,13 @@ pub trait SafeWriteArcExt<T> {
 }
 
 impl<T> SafeReadArcExt<T> for Arc<RwLock<T>> {
-    #[cfg(feature = "std")]
+    #[cfg(all(feature = "std", not(target_family = "wasm")))]
     #[inline]
     fn read_arc_safe(&self) -> RwLockReadGuardArc<T> {
         self.read_arc_blocking()
     }
 
-    #[cfg(not(feature = "std"))]
+    #[cfg(any(not(feature = "std"), target_family = "wasm"))]
     #[inline]
     fn read_arc_safe(&self) -> RwLockReadGuardArc<T> {
         self.try_read_arc().expect("Deadlock")
@@ -28,13 +28,13 @@ impl<T> SafeReadArcExt<T> for Arc<RwLock<T>> {
 }
 
 impl<T> SafeLockArcExt<T> for Arc<Mutex<T>> {
-    #[cfg(feature = "std")]
+    #[cfg(all(feature = "std", not(target_family = "wasm")))]
     #[inline]
     fn lock_arc_safe(&self) -> MutexGuardArc<T> {
         self.lock_arc_blocking()
     }
 
-    #[cfg(not(feature = "std"))]
+    #[cfg(any(not(feature = "std"), target_family = "wasm"))]
     #[inline]
     fn lock_arc_safe(&self) -> MutexGuardArc<T> {
         self.try_lock_arc().expect("Deadlock")
@@ -42,13 +42,13 @@ impl<T> SafeLockArcExt<T> for Arc<Mutex<T>> {
 }
 
 impl<T> SafeWriteArcExt<T> for Arc<RwLock<T>> {
-    #[cfg(feature = "std")]
+    #[cfg(all(feature = "std", not(target_family = "wasm")))]
     #[inline]
     fn write_arc_safe(&self) -> RwLockWriteGuardArc<T> {
         self.write_arc_blocking()
     }
 
-    #[cfg(not(feature = "std"))]
+    #[cfg(any(not(feature = "std"), target_family = "wasm"))]
     #[inline]
     fn write_arc_safe(&self) -> RwLockWriteGuardArc<T> {
         self.try_write_arc().expect("Deadlock")
