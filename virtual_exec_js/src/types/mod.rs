@@ -1,13 +1,12 @@
 pub mod alloc;
 pub mod owned;
 
-use wasm_bindgen;
 use wasm_bindgen::JsValue;
+use wasm_bindgen::prelude::wasm_bindgen;
 use virtual_exec_type::error::MemoryOutOfBoundError;
-use virtual_exec_type::ext::SafeLockArcExt;
+use virtual_exec_type::ext::{SafeLockArcExt, SafeReadArcExt};
 use virtual_exec_type::mem::{MemoryAllocator, Value, ValuePtr};
-
-
+use crate::types::owned::OwnedValueWrapper;
 
 #[wasm_bindgen::prelude::wasm_bindgen]
 pub struct ValuePtrWrapper(ValuePtr<'static>);
@@ -37,5 +36,16 @@ pub fn wrap_ptr(ptr: ValuePtr) -> ValuePtrWrapper {
 impl From<ValuePtr<'static>> for ValuePtrWrapper {
     fn from(ptr: ValuePtr<'static>) -> ValuePtrWrapper {
         Self(ptr)
+    }
+}
+
+#[wasm_bindgen]
+impl ValuePtrWrapper {
+    #[wasm_bindgen]
+    pub fn to_owned(&self) -> Option<OwnedValueWrapper> {
+        let alloc = self.0.read_arc_safe().get_alloc();
+        alloc.map(|alloc| alloc.lock_arc_safe().get_owned(&self.0).ok())
+            .flatten()
+            .map(OwnedValueWrapper::from)
     }
 }

@@ -163,6 +163,12 @@ pub struct ValueInnerPtr<'a> {
     pub(self) alloc: Weak<Mutex<MemoryAllocation<'a>>>,
 }
 
+impl<'a> ValueInnerPtr<'a> {
+    pub fn get_alloc(&self) -> Option<MemoryAllocator<'a>> {
+        self.alloc.upgrade()
+    }
+}
+
 impl<'a> Deref for ValueInnerPtr<'a> {
     type Target = Value<'a>;
 
