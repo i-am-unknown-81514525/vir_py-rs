@@ -1,8 +1,13 @@
 use wasm_bindgen::JsValue;
-use virtual_exec_type::mem::OwnedValue;
+use virtual_exec_type::mem::{get_all_owned_value, OwnedValue};
 use crate::error::Error;
+use wasm_bindgen::prelude::wasm_bindgen;
 
-#[wasm_bindgen::prelude::wasm_bindgen]
+
+
+
+
+#[wasm_bindgen]
 pub struct OwnedValueWrapper {
     inner: OwnedValue
 }
@@ -22,5 +27,14 @@ impl From<OwnedValue> for OwnedValueWrapper {
         Self {
             inner: value
         }
+    }
+}
+
+#[wasm_bindgen]
+impl OwnedValueWrapper {
+    #[wasm_bindgen]
+    pub fn to_js(&self) -> JsValue {
+        let all = get_all_owned_value(self.inner.clone());
+        todo!()
     }
 }
