@@ -1,6 +1,7 @@
 pub mod core;
 mod types;
 mod error;
+pub mod stdlib;
 
 pub trait Dewrap<T> {
     fn dewrap(self) -> T;

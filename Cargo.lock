@@ -1890,6 +1890,7 @@ dependencies = [
  "serde",
  "serde-wasm-bindgen",
  "virtual_exec_core",
+ "virtual_exec_std",
  "virtual_exec_type",
  "wasm-bindgen",
  "wasm-bindgen-futures",
