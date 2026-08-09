@@ -9,6 +9,7 @@ use wasm_bindgen::JsValue;
 use wasm_bindgen::prelude::wasm_bindgen;
 use virtual_exec_core::{compile, parse, Machine};
 use virtual_exec_core::fn_extern::{FnExtern, MethodResolver};
+use virtual_exec_core::sequential::ParseError;
 use virtual_exec_type::error::{CriticalError, ExecutionError};
 use virtual_exec_type::ext::SafeWriteArcExt;
 use virtual_exec_type::HashMap;
@@ -83,7 +84,6 @@ impl From<Machine<'static>> for MachineWrapper {
 }
 
 
-
 auto_impl_fn!(
     (MachineWrapper, sync_run_once -> StateWrapper),
     (MachineWrapper, async async_run_once -> StateWrapper),
@@ -97,6 +97,11 @@ auto_impl_fn!(
     ),
     (MachineWrapper, get(name: &str) -> Option<OwnedValueWrapper> |
         |x: Option<OwnedValue>| x.map(|y| y.into())
+    ),
+    (MachineWrapper, push_code(code: &str) -> Result<(), JsValue> |
+        |v: Result<(), ParseError>| {
+            v.map_err(|e| e.to_js_error("Parse Error"))
+        }
     )
 );
 

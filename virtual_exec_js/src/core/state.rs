@@ -38,6 +38,39 @@ pub struct StateWrapper {
 }
 
 #[wasm_bindgen]
+pub struct FnExternInputWrapper {
+    #[wasm_bindgen(getter_with_clone)]
+    pub fn_name: String,
+    pub arg_len: u64
+}
+
+#[wasm_bindgen]
+pub struct FnExternOutputWrapper {
+    #[wasm_bindgen(getter_with_clone)]
+    pub fn_name: String,
+    #[wasm_bindgen(getter_with_clone)]
+    pub args: Vec<ValuePtrWrapper>
+}
+
+impl From<(String, u64)> for FnExternInputWrapper {
+    fn from(value: (String, u64)) -> Self {
+        Self {
+            fn_name: value.0,
+            arg_len: value.1
+        }
+    }
+}
+
+impl From<(String, Vec<ValuePtrWrapper>)> for FnExternOutputWrapper {
+    fn from(value: (String, Vec<ValuePtrWrapper>)) -> Self {
+        Self {
+            fn_name: value.0,
+            args: value.1
+        }
+    }
+}
+
+#[wasm_bindgen]
 impl StateWrapper {
     #[wasm_bindgen(getter)]
     pub fn state_enum(&self) -> StateEnum {
@@ -47,6 +80,43 @@ impl StateWrapper {
     #[wasm_bindgen(getter)]
     pub fn can_continue_executing(&self) -> bool {
         self.can_continue_executing
+    }
+
+    #[wasm_bindgen]
+    pub fn get_error(&self) -> Option<JsValue> {
+        self.error.clone()
+    }
+
+    #[wasm_bindgen]
+    pub fn get_fn_extern_input(&self) -> Option<FnExternInputWrapper> {
+        match self.state_enum {
+            StateEnum::FnExternInput => Some(
+                FnExternInputWrapper::from(
+                    (self.additional_0.clone().unwrap(), self.additional_1.unwrap())
+                )
+            ),
+            _ => None
+        }
+    }
+
+    #[wasm_bindgen]
+    pub fn get_fn_extern_output(&self) -> Option<FnExternOutputWrapper> {
+        match self.state_enum {
+            StateEnum::FnExternOutput => Some(
+                FnExternOutputWrapper::from(
+                    (self.additional_0.clone().unwrap(), self.additional_2.clone().unwrap())
+                )
+            ),
+            _ => None
+        }
+    }
+    
+    #[wasm_bindgen]
+    pub fn get_timeout(&self) -> Option<u64> {
+        match (self.state_enum, self.additional_1) {
+            (StateEnum::Timeout, Some(t)) => Some(t),
+            _ => None
+        }
     }
 }
 

@@ -10,6 +10,7 @@ use virtual_exec_type::mem::{MemoryAllocator, Value, ValuePtr};
 use crate::types::owned::OwnedValueWrapper;
 
 #[wasm_bindgen::prelude::wasm_bindgen]
+#[derive(Clone)]
 pub struct ValuePtrWrapper(ValuePtr<'static>);
 
 /// This will potentially destroy the lifetime data corresponded to the machine, which could allow
