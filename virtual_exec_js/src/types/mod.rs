@@ -1,6 +1,7 @@
 pub mod alloc;
 pub mod owned;
 
+use std::ops::Deref;
 use wasm_bindgen::JsValue;
 use wasm_bindgen::prelude::wasm_bindgen;
 use virtual_exec_type::error::MemoryOutOfBoundError;
@@ -48,4 +49,41 @@ impl ValuePtrWrapper {
             .flatten()
             .map(OwnedValueWrapper::from)
     }
+
+    #[wasm_bindgen]
+    pub fn get_kind(&self) -> ValueKindWrapper {
+        match self.0.read_arc_safe().deref().inner {
+            Value::Int(_) => ValueKindWrapper::Int,
+            Value::Float(_) => ValueKindWrapper::Float,
+            Value::Bool(_) => ValueKindWrapper::Bool,
+            Value::None => ValueKindWrapper::None,
+            Value::String(_) => ValueKindWrapper::String,
+            Value::Collection(_) => ValueKindWrapper::Collection,
+            Value::Object(_) => ValueKindWrapper::Object,
+            Value::_Scope(_) => ValueKindWrapper::_Scope,
+            Value::MemoryChunk(_) => ValueKindWrapper::MemoryChunk,
+            Value::Error(_) => ValueKindWrapper::Error,
+            Value::DPtr(_, _) => ValueKindWrapper::DPtr,
+            Value::FnPtrExternal(_, _) => ValueKindWrapper::FnPtrExternal,
+            Value::Any(_) => ValueKindWrapper::Any,
+        }
+    }
+}
+
+#[wasm_bindgen]
+#[derive(Copy, Clone, Debug, Eq, PartialEq)]
+pub enum ValueKindWrapper {
+    Int,
+    Float,
+    Bool,
+    String,
+    None,
+    Collection,
+    Object,
+    Error,
+    DPtr,
+    FnPtrExternal,
+    _Scope,
+    MemoryChunk,
+    Any,
 }
