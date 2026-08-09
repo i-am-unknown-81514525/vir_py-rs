@@ -20,6 +20,7 @@ use crate::core::fn_extern::JsExternFuncSync;
 use crate::error::Error;
 use crate::types::alloc::AllocatorWrapper;
 use crate::types::owned::OwnedValueWrapper;
+use crate::stdlib::MethodResolverWrapper;
 
 #[wasm_bindgen]
 pub struct MachineWrapper(pub(crate) Machine<'static>);
@@ -102,7 +103,8 @@ auto_impl_fn!(
         |v: Result<(), ParseError>| {
             v.map_err(|e| e.to_js_error("Parse Error"))
         }
-    )
+    ),
+    (MachineWrapper, push_resolver(resolver: MethodResolverWrapper) -> ())
 );
 
 

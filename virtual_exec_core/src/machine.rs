@@ -360,6 +360,10 @@ impl<'a> Machine<'a> {
         };
         Ok(machine)
     }
+
+    pub fn push_resolver(&mut self, resolver: MethodResolver) {
+        self.resolvers.insert(0, resolver)
+    }
 }
 
 
