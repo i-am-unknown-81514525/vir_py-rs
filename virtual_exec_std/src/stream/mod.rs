@@ -20,9 +20,9 @@ func!(read_stream);
 
 
 pub struct Named<W> {
-    f: W,
-    name: &'static str,
-    at: &'static Location<'static>,
+    pub f: W,
+    pub name: &'static str,
+    pub at: &'static Location<'static>,
 }
 
 impl<W> std::fmt::Debug for Named<W> {

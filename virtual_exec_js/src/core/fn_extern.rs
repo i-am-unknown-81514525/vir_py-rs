@@ -1,14 +1,16 @@
 use std::collections::{HashSet, VecDeque};
 use std::fmt::{Debug, Formatter};
+use std::ops::Deref;
 use std::sync::Arc;
 use async_lock::RwLock;
 use wasm_bindgen::JsValue;
 use wasm_bindgen::prelude::wasm_bindgen;
 use virtual_exec_core::fn_extern::{FnExtern, FnExternConstruct};
 use virtual_exec_core::Machine;
+use virtual_exec_std::stream::write::{OutputByteStream, OutputByteStreamInner};
 use virtual_exec_type::base::{TypeCast, VmAnyType};
 use virtual_exec_type::error::{CriticalError, ExecutionError, MemoryError, NonRecoverableError};
-use virtual_exec_type::ext::SafeWriteArcExt;
+use virtual_exec_type::ext::{SafeReadArcExt, SafeWriteArcExt};
 use virtual_exec_type::HashMap;
 use virtual_exec_type::mem::{Allocator, MemoryAllocator, Value, ValueInnerPtr, ValuePtr};
 use crate::core::{lifetime_transmute_machine_ref_mut};
@@ -49,6 +51,63 @@ impl FnExternConstruct for JsExternFuncSync {
 impl From<js_sys::Function> for JsExternFuncSync {
     fn from(value: js_sys::Function) -> Self {
         Self(Some(value))
+    }
+}
+
+impl Into<Box<dyn Fn(Vec<u8>) -> bool + Send + Sync + 'static>> for JsExternFuncSync {
+    fn into(self) -> Box<dyn Fn(Vec<u8>) -> bool + Send + Sync + 'static> {
+        let func = move |x: Vec<u8>| {
+            if let Some(js) = &self.0 {
+                js.call1(&JsValue::undefined(), &JsValue::from(x)).is_ok()
+            } else {
+                false
+            }
+        };
+        Box::new(func)
+    }
+}
+
+#[wasm_bindgen]
+pub struct FnStreamOutput(Option<OutputByteStream>);
+
+#[wasm_bindgen]
+impl FnStreamOutput {
+    #[wasm_bindgen(constructor)]
+    pub fn new(func: js_sys::Function) -> Self {
+        let func_wrapped: JsExternFuncSync = func.into();
+        let conv: Box<dyn Fn(Vec<u8>) -> bool + Send + Sync + 'static> = func_wrapped.into();
+        let stream = OutputByteStream::new(RwLock::new(OutputByteStreamInner::new_sync(conv)));
+        Self(Some(stream))
+    }
+}
+
+impl FnExternConstruct for FnStreamOutput {
+    fn new() -> Self
+    where
+        Self: Sized,
+    {
+        Self(None)
+    }
+}
+
+impl FnExtern for FnStreamOutput {
+    fn fn_extern_sync<'a, 'b>(&self, machine: &'b mut Machine<'a>, values: Vec<ValuePtr<'a>>) -> Result<ValuePtr<'a>, ExecutionError> {
+        if values.len() != 1 {
+            return Err(ExecutionError::NonRecoverable(NonRecoverableError::IncorrectArgumentCountError));
+        }
+        let ptr = values[0].clone();
+        let str = ptr.as_string();
+        if let Some(str) = str {
+            let vec = str.into_bytes();
+            machine.alloc.alloc(Value::Bool(self.0.as_ref().unwrap().read_arc_safe().sync_fn.f.deref()(vec)))
+                .map_err(|e| e.into())
+        } else {
+            Err(ExecutionError::NonRecoverable(NonRecoverableError::InvalidTypeError))
+        }
+    }
+
+    fn get_size(&self) -> usize {
+        1024
     }
 }
 
