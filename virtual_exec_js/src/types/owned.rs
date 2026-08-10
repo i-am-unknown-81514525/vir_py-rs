@@ -7,6 +7,7 @@ use wasm_bindgen::prelude::wasm_bindgen;
 use virtual_exec_type::error::MemoryError;
 use virtual_exec_type::ext::SafeReadArcExt;
 use virtual_exec_type::HashMap;
+use crate::Dewrap;
 
 #[wasm_bindgen]
 pub struct OwnedValueWrapper {
@@ -28,6 +29,12 @@ impl From<OwnedValue> for OwnedValueWrapper {
         Self {
             inner: value
         }
+    }
+}
+
+impl Dewrap<OwnedValue> for OwnedValueWrapper {
+    fn dewrap(self) -> OwnedValue {
+        self.inner
     }
 }
 

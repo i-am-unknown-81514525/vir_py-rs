@@ -15,7 +15,10 @@ use virtual_exec_type::HashMap;
 use virtual_exec_type::mem::{Allocator, MemoryAllocator, Value, ValueInnerPtr, ValuePtr};
 use crate::core::{lifetime_transmute_machine_ref_mut};
 use crate::core::machine_ref::MachineRef;
+use crate::Dewrap;
+use crate::error::Error;
 use crate::types::{extend_ptr, ValuePtrWrapper};
+use crate::types::alloc::AllocatorWrapper;
 
 #[wasm_bindgen]
 pub struct JsExternFuncSync(Option<js_sys::Function>);
@@ -256,4 +259,11 @@ fn clone_construct<'a>(value: &JsValue, alloc: &MemoryAllocator<'a>) -> Result<V
         }
     };
     Ok(new_ref.remove(&id).unwrap().0)
+}
+
+#[wasm_bindgen]
+pub fn from_js(value: JsValue, alloc: AllocatorWrapper) -> Result<ValuePtrWrapper, JsValue> {
+    clone_construct(&value, &alloc.dewrap())
+        .map(ValuePtrWrapper::from)
+        .map_err(|e| e.to_js_error("Conversion failed"))
 }

@@ -54,7 +54,6 @@ pub static BASIC: LazyLock<MethodResolver> = LazyLock::new(|| {
         ("concat", Concat),
         ("create_obj", CreateObj),
         ("dir", Dir),
-        ("read_stream", ReadStream),
         ("to_str", ToStr),
         ("rm_ele", RmEle),
         ("int", Int)
