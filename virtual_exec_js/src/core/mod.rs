@@ -101,7 +101,9 @@ auto_impl_fn!(
             v.map_err(|e| e.to_js_error("Parse Error"))
         }
     ),
-    (MachineWrapper, push_resolver(resolver: &MethodResolverWrapper) -> ()),
+    (MachineWrapper, push_resolver(resolver: &MethodResolverWrapper) -> Option<JsValue> | 
+        |e: Result<(), ExecutionError>| e.map_err(|e| e.to_js_error("Failed to push resolver")).err()
+    ),
     (MachineWrapper, get_alloc -> AllocatorWrapper),
     (MachineWrapper, set_root(key: &str, ptr: &ValuePtrWrapper) -> Option<JsValue> |
         |v: Result<(), ExecutionError>| v.map_err(|e| e.to_js_error("Value set error")).err()

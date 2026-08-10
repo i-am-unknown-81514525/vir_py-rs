@@ -365,8 +365,22 @@ impl<'a> Machine<'a> {
         Ok(machine)
     }
 
-    pub fn push_resolver(&mut self, resolver: MethodResolver) {
-        self.resolvers.insert(0, resolver)
+    pub fn push_resolver(&mut self, resolver: MethodResolver) -> Result<(), ExecutionError> {
+        resolver.get_pair().into_iter().map(|(key, value)| {
+            let ptr = self.alloc.alloc(
+                Value::FnPtrExternal(
+                    key.clone().into_boxed_str(),
+                    value
+                )
+            )?;
+            self.machine.fn_stack_frame.first()
+                .ok_or(ExecutionError::Critical(CriticalError::FnStackUnderflowError))?
+                .mapping.write_arc_safe()
+                .insert(key, ptr);
+            Ok(())
+        }).collect::<Result<Vec<()>, ExecutionError>>()?;
+        self.resolvers.insert(0, resolver);
+        Ok(())
     }
 
     pub fn set_root(&self, key: String, ptr: ValuePtr<'a>) -> Result<(), ExecutionError> {
