@@ -69,7 +69,6 @@ macro_rules! auto_impl_fn {
 use wasm_bindgen::JsValue;
 pub(crate) use auto_impl_fn;
 use virtual_exec_core::parse;
-use virtual_exec_core::sequential::ParseError;
 use crate::error::Error;
 use wasm_bindgen::prelude::wasm_bindgen;
 

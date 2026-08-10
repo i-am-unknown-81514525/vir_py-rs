@@ -110,25 +110,25 @@ auto_impl_fn!(
         |v: Result<(), ExecutionError>| v.map_err(|e| e.to_js_error("Value set error")).err()
     ),
     (MachineWrapper, grant_lim(additional: u64) -> ()),
-    (MachineWrapper, reduce_lim(size: u64) -> Option<JsValue> | 
+    (MachineWrapper, reduce_lim(size: u64) -> Option<JsValue> |
         |e: Result<(), RecoverableError>| e.map_err(|e| e.to_js_error("Failed to reduce machine limit")).err()
     ),
     (MachineWrapper, check_use(size: u64) -> bool)
 );
 
 
-/// Safety: All data in machine is owned except PhantomData
-pub(crate) fn lifetime_transmute_machine<'a, 'b>(ptr: Machine<'a>) -> Machine<'b> {
-    unsafe {
-        std::mem::transmute(ptr)
-    }
-}
-
-pub(crate) fn lifetime_transmute_machine_ref<'a, 'b, 'c>(ptr: &'c Machine<'a>) ->&'c Machine<'b> {
-    unsafe {
-        std::mem::transmute(ptr)
-    }
-}
+// /// Safety: All data in machine is owned except PhantomData
+// pub(crate) fn lifetime_transmute_machine<'a, 'b>(ptr: Machine<'a>) -> Machine<'b> {
+//     unsafe {
+//         std::mem::transmute(ptr)
+//     }
+// }
+//
+// pub(crate) fn lifetime_transmute_machine_ref<'a, 'b, 'c>(ptr: &'c Machine<'a>) ->&'c Machine<'b> {
+//     unsafe {
+//         std::mem::transmute(ptr)
+//     }
+// }
 
 pub(crate) fn lifetime_transmute_machine_ref_mut<'a, 'b, 'c>(ptr: &'c mut Machine<'a>) ->&'c mut Machine<'b> {
     unsafe {
