@@ -61,3 +61,7 @@ textarea {
 .right_align {
     margin-inline-start: auto;
 }
+
+.hidden {
+    visibility: hidden;
+}
