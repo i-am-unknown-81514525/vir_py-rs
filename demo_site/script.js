@@ -95,7 +95,7 @@ function reset_metrics() {
     metric.obj.textContent = "—";
 }
 
-function sample_metrics(alloc, requested) {
+function sample_metrics(alloc, machine, budget) {
     const curr = alloc.curr();
     const max = alloc.max();
     mem_peak = Math.max(mem_peak, curr);
@@ -105,10 +105,9 @@ function sample_metrics(alloc, requested) {
         ? `${fmt_bytes(curr)} / ${fmt_bytes(max)}  ↑${fmt_bytes(mem_peak)}`
         : `${fmt_bytes(curr)} / ${fmt_bytes(max)}`;
 
-    const used = requested < INSTRUCTION_LIMIT ? requested : INSTRUCTION_LIMIT;
-    set_bar(metric.inst_fill, Number(used) / Number(INSTRUCTION_LIMIT));
-    const exact = used === INSTRUCTION_LIMIT;
-    metric.inst.textContent = `${exact ? "" : "≤"}${Number(used).toLocaleString()} / ${Number(INSTRUCTION_LIMIT).toLocaleString()}`;
+    const used = budget - machine.get_lim();
+    set_bar(metric.inst_fill, budget === 0n ? 0 : Number(used) / Number(budget));
+    metric.inst.textContent = `${Number(used).toLocaleString()} / ${Number(budget).toLocaleString()}`;
 
     metric.obj.textContent = String(alloc.obj_count());
 }
@@ -139,7 +138,7 @@ async function run() {
     reset_metrics();
     set_running_state(true);
     let pre = null, post = null, output = null, alloc = null;
-    let requested = 0n, final_state = null, final_error = null, thrown = null;
+    let budget = 0n, final_state = null, final_error = null, thrown = null;
     try {
         pre = new MachineWrapper(MEMORY_LIMIT, INSTRUCTION_LIMIT);
         output = new FnStreamOutput(vm_writer);
@@ -149,12 +148,12 @@ async function run() {
         pre.free();
         pre = null;
         alloc = post.get_alloc();
+        budget = post.get_lim();
         post.push_code(editor.getValue());
-        sample_metrics(alloc, requested);
+        sample_metrics(alloc, post, budget);
         while (is_running) {
             let r = post.sync_run_for(CHUNK);
-            requested += CHUNK;
-            sample_metrics(alloc, requested);
+            sample_metrics(alloc, post, budget);
             if (!r.can_continue_executing) {
                 final_state = r.state_enum;
                 final_error = r.get_error();
