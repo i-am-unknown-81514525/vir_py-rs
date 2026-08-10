@@ -608,6 +608,10 @@ pub trait Allocator {
     fn alloc(&self, input: Self::Input) -> Result<Self::Output, MemoryError>;
 
     fn change_alloc(&self, data: &Self::Output) -> Result<(), MemoryError>;
+    
+    fn curr(&self) -> usize;
+    
+    fn max(&self) -> usize;
 }
 
 const NODE_OVERHEAD: usize = 32;
@@ -686,5 +690,13 @@ impl<'a> Allocator for MemoryAllocator<'a> {
         }
         data.write_arc_safe().size = new_size;
         Ok(())
+    }
+
+    fn curr(&self) -> usize {
+        self.lock_arc_safe().curr
+    }
+
+    fn max(&self) -> usize {
+        self.lock_arc_safe().max
     }
 }

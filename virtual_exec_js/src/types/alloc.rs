@@ -2,7 +2,8 @@ use wasm_bindgen::JsValue;
 use wasm_bindgen::prelude::wasm_bindgen;
 use virtual_exec_core::Machine;
 use virtual_exec_type::ext::SafeLockArcExt;
-use virtual_exec_type::mem::{MemoryAllocator, OwnedValue};
+use virtual_exec_type::mem::{MemoryAllocator, OwnedValue, Allocator};
+use crate::auto_impl_fn;
 use crate::error::Error;
 use crate::types::owned::OwnedValueWrapper;
 use crate::types::ValuePtrWrapper;
@@ -31,3 +32,8 @@ impl AllocatorWrapper {
             .map(|v| v.into())
     }
 }
+
+auto_impl_fn!(
+    (AllocatorWrapper, curr -> usize),
+    (AllocatorWrapper, max -> usize)
+);
