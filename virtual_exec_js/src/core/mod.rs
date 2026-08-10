@@ -21,6 +21,8 @@ use crate::error::Error;
 use crate::types::alloc::AllocatorWrapper;
 use crate::types::owned::OwnedValueWrapper;
 use crate::stdlib::MethodResolverWrapper;
+use crate::types::ValuePtrWrapper;
+
 
 #[wasm_bindgen]
 pub struct MachineWrapper(pub(crate) Machine<'static>);
@@ -100,7 +102,13 @@ auto_impl_fn!(
         }
     ),
     (MachineWrapper, push_resolver(resolver: MethodResolverWrapper) -> ()),
-    (MachineWrapper, get_alloc -> AllocatorWrapper)
+    (MachineWrapper, get_alloc -> AllocatorWrapper),
+    (MachineWrapper, set_root(key: String, ptr: ValuePtrWrapper) -> Option<JsValue> |
+        |v: Result<(), ExecutionError>| v.map_err(|e| e.to_js_error("Value set error")).err()
+    ),
+    (MachineWrapper, set_top(key: String, ptr: ValuePtrWrapper) -> Option<JsValue> |
+        |v: Result<(), ExecutionError>| v.map_err(|e| e.to_js_error("Value set error")).err()
+    )
 );
 
 

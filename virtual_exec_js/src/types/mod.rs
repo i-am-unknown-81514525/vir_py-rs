@@ -7,11 +7,18 @@ use wasm_bindgen::prelude::wasm_bindgen;
 use virtual_exec_type::error::MemoryOutOfBoundError;
 use virtual_exec_type::ext::{SafeLockArcExt, SafeReadArcExt};
 use virtual_exec_type::mem::{MemoryAllocator, Value, ValuePtr};
+use crate::Dewrap;
 use crate::types::owned::OwnedValueWrapper;
 
 #[wasm_bindgen::prelude::wasm_bindgen]
 #[derive(Clone)]
 pub struct ValuePtrWrapper(ValuePtr<'static>);
+
+impl Dewrap<ValuePtr<'static>> for ValuePtrWrapper {
+    fn dewrap(self) -> ValuePtr<'static> {
+        self.0
+    }
+}
 
 /// This will potentially destroy the lifetime data corresponded to the machine, which could allow
 /// a different machine allocator manage the current machine data

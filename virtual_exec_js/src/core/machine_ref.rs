@@ -5,13 +5,16 @@ use wasm_bindgen::JsValue;
 use wasm_bindgen::prelude::wasm_bindgen;
 use virtual_exec_core::Machine;
 use virtual_exec_core::machine::PtrAliveCheck;
+use virtual_exec_type::error::ExecutionError;
 use virtual_exec_type::ext::{SafeReadArcExt, SafeWriteArcExt};
 use virtual_exec_type::mem::OwnedValue;
 use crate::auto_impl_fn;
 use crate::core::MachineWrapper;
 use crate::core::state::StateWrapper;
+use crate::error::Error;
 use crate::types::alloc::AllocatorWrapper;
 use crate::types::owned::OwnedValueWrapper;
+use crate::types::ValuePtrWrapper;
 
 #[wasm_bindgen]
 pub struct MachineRef(*mut Machine<'static>, PtrAliveCheck);
@@ -126,5 +129,11 @@ auto_impl_fn_injected!(
     (CheckedMachineRef, get(name: &str) -> Option<OwnedValueWrapper> |
         |x: Option<OwnedValue>| x.map(|y| y.into())
     ),
-    (CheckedMachineRef, get_alloc -> AllocatorWrapper)
+    (CheckedMachineRef, get_alloc -> AllocatorWrapper),
+    (CheckedMachineRef, set_root(key: String, ptr: ValuePtrWrapper) -> Option<JsValue> |
+        |v: Result<(), ExecutionError>| v.map_err(|e| e.to_js_error("Value set error")).err()
+    ),
+    (CheckedMachineRef, set_top(key: String, ptr: ValuePtrWrapper) -> Option<JsValue> |
+        |v: Result<(), ExecutionError>| v.map_err(|e| e.to_js_error("Value set error")).err()
+    )
 );

@@ -368,6 +368,22 @@ impl<'a> Machine<'a> {
     pub fn push_resolver(&mut self, resolver: MethodResolver) {
         self.resolvers.insert(0, resolver)
     }
+
+    pub fn set_root(&self, key: String, ptr: ValuePtr<'a>) -> Result<(), ExecutionError> {
+        self.machine.fn_stack_frame.get(0)
+            .ok_or_else(|| ExecutionError::Critical(CriticalError::FnStackUnderflowError))?
+            .mapping.write_arc_safe()
+            .insert(key, ptr);
+        Ok(())
+    }
+
+    pub fn set_top(&self, key: String, ptr: ValuePtr<'a>) -> Result<(), ExecutionError> {
+        self.machine.fn_stack_frame.last()
+            .ok_or_else(|| ExecutionError::Critical(CriticalError::FnStackUnderflowError))?
+            .mapping.write_arc_safe()
+            .insert(key, ptr);
+        Ok(())
+    }
 }
 
 
