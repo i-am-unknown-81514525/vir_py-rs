@@ -10,3 +10,4 @@ A collections of helpful macro for building external function
 - [virtual_exec_core](https://crates.io/crates/virtual_exec_core)
 - [virtual_exec_std](https://crates.io/crates/virtual_exec_std)
 - [virtual_exec_repl](https://crates.io/crates/virtual_exec_repl)
+- [virtual_exec_js](https://crates.io/crates/virtual_exec_js)

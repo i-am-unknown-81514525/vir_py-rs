@@ -128,6 +128,7 @@ WIP Feature list:
 - [virtual_exec_extern](https://crates.io/crates/virtual_exec_extern)
 - [virtual_exec_std](https://crates.io/crates/virtual_exec_std)
 - [virtual_exec_repl](https://crates.io/crates/virtual_exec_repl)
+- [virtual_exec_js](https://crates.io/crates/virtual_exec_js)
 
 ### Video Demo
 

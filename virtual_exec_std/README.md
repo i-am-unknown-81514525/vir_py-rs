@@ -10,3 +10,4 @@ A crate to provide standard function for the language
 - [virtual_exec_core](https://crates.io/crates/virtual_exec_core)
 - [virtual_exec_extern](https://crates.io/crates/virtual_exec_extern)
 - [virtual_exec_repl](https://crates.io/crates/virtual_exec_repl)
+- [virtual_exec_js](https://crates.io/crates/virtual_exec_js)
