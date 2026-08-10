@@ -2,8 +2,7 @@
 <html lang="en">
 <head>
     <meta charset="UTF-8">
-    <title>Title</title>
-    <script language="javascript" type="text/javascript" src="script.js"></script>
+    <title>VirtualExec</title>
     <link rel="stylesheet" href="style.css">
     <script language="javascript" type="text/javascript" src="https://cdnjs.cloudflare.com/ajax/libs/codemirror/6.65.7/codemirror.min.js"></script>
     <script language="javascript" type="text/javascript" src="https://cdnjs.cloudflare.com/ajax/libs/codemirror/6.65.7/mode/perl/perl.min.js"></script>
@@ -11,11 +10,13 @@
     <link rel="stylesheet" type="text/css" href="https://cdnjs.cloudflare.com/ajax/libs/codemirror/6.65.7/codemirror.min.css"></link>
     <link rel="stylesheet" type="text/css" href="https://cdnjs.cloudflare.com/ajax/libs/codemirror/6.65.7/theme/material-darker.min.css"></link>
 
+    <script type="module" src="script.js"></script>
 </head>
 <body>
-    <div id="run_button" class="monospace boundary right_align min" onclick="run()">Run</div>
+    <div id="run_button" class="monospace boundary right_align min">Run</div>
     <label>
         <textarea class="monospace boundary" id="editor"></textarea>
     </label>
+    <pre id="output" class="monospace boundary"></pre>
 </body>
 </html>
