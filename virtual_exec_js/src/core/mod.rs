@@ -10,7 +10,7 @@ use wasm_bindgen::prelude::wasm_bindgen;
 use virtual_exec_core::{compile, parse, Machine};
 use virtual_exec_core::fn_extern::{FnExtern, MethodResolver};
 use virtual_exec_core::sequential::ParseError;
-use virtual_exec_type::error::{CriticalError, ExecutionError};
+use virtual_exec_type::error::{CriticalError, ExecutionError, RecoverableError};
 use virtual_exec_type::ext::SafeWriteArcExt;
 use virtual_exec_type::HashMap;
 use virtual_exec_type::mem::{Allocator, OwnedValue, Value, ValuePtr};
@@ -108,7 +108,12 @@ auto_impl_fn!(
     ),
     (MachineWrapper, set_top(key: String, ptr: ValuePtrWrapper) -> Option<JsValue> |
         |v: Result<(), ExecutionError>| v.map_err(|e| e.to_js_error("Value set error")).err()
-    )
+    ),
+    (MachineWrapper, grant_lim(additional: u64) -> ()),
+    (MachineWrapper, reduce_lim(size: u64) -> Option<JsValue> | 
+        |e: Result<(), RecoverableError>| e.map_err(|e| e.to_js_error("Failed to reduce machine limit")).err()
+    ),
+    (MachineWrapper, check_use(size: u64) -> bool)
 );
 
 

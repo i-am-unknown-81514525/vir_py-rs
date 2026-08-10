@@ -10,7 +10,7 @@ use cfg_if::cfg_if;
 use virtual_exec_parser::error::ParseError;
 use virtual_exec_parser::parser::parse_expr;
 use virtual_exec_type::ast::core::Module;
-use virtual_exec_type::error::{CriticalError, ExecutionError, MemoryError};
+use virtual_exec_type::error::{CriticalError, ExecutionError, MemoryError, RecoverableError};
 use virtual_exec_type::ext::*;
 use virtual_exec_type::mem::{
     Allocator, MemoryAllocator, MemoryAllocatorConstructor, OwnedValue, Value, ValuePtr,
@@ -37,7 +37,7 @@ impl PtrAliveCheck {
 }
 
 /// The execution instance including the memory allocator and the instruction state machine
-#[derive(Debug, Clone)]
+#[derive(Debug)]
 pub struct Machine<'a> {
     #[allow(unused)]
     /// The memory allocator for the machine
@@ -246,7 +246,7 @@ impl<'a> Machine<'a> {
             machine: forked_inst_state_machine,
             resolvers: self.resolvers.clone(),
             #[cfg(feature = "unsafe_check")]
-            ptr_alive_check: self.ptr_alive_check.clone(),
+            ptr_alive_check: PtrAliveCheck::new(),
         }
     }
 
@@ -384,6 +384,18 @@ impl<'a> Machine<'a> {
             .insert(key, ptr);
         Ok(())
     }
+
+    pub fn grant_lim(&mut self, additional: u64) {
+        self.machine.grant_lim(additional)
+    }
+
+    pub fn reduce_lim(&mut self, size: u64) -> Result<(), RecoverableError> {
+        self.machine.reduce_lim(size)
+    }
+
+    pub fn check_use(&self, size: u64) -> bool {
+        self.machine.check_use(size)
+    }
 }
 
 
@@ -393,6 +405,19 @@ impl Drop for Machine<'_> {
             if #[cfg(feature = "unsafe_check")] {
                 self.ptr_alive_check.clear();
             }
+        }
+    }
+}
+
+
+impl Clone for Machine<'_> {
+    fn clone(&self) -> Self {
+        Self {
+            alloc: self.alloc.clone(),
+            machine: self.machine.clone(),
+            resolvers: self.resolvers.clone(),
+            #[cfg(feature = "unsafe_check")]
+            ptr_alive_check: PtrAliveCheck::new(),
         }
     }
 }
