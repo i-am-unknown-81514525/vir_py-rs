@@ -112,6 +112,10 @@ impl<'a> Machine<'a> {
         })
     }
 
+    pub fn get_alloc(&self) -> MemoryAllocator<'a> {
+        Arc::clone(&self.alloc)
+    }
+
     #[cfg(feature = "std")]
     fn dispatch_extern_sync(
         &mut self,

@@ -10,6 +10,7 @@ use virtual_exec_type::mem::OwnedValue;
 use crate::auto_impl_fn;
 use crate::core::MachineWrapper;
 use crate::core::state::StateWrapper;
+use crate::types::alloc::AllocatorWrapper;
 use crate::types::owned::OwnedValueWrapper;
 
 #[wasm_bindgen]
@@ -124,5 +125,6 @@ auto_impl_fn_injected!(
     ),
     (CheckedMachineRef, get(name: &str) -> Option<OwnedValueWrapper> |
         |x: Option<OwnedValue>| x.map(|y| y.into())
-    )
+    ),
+    (CheckedMachineRef, get_alloc -> AllocatorWrapper)
 );

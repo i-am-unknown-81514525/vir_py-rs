@@ -58,11 +58,6 @@ impl MachineWrapper {
     }
 
     #[wasm_bindgen]
-    pub fn get_alloc(&self) -> AllocatorWrapper {
-        AllocatorWrapper::new(Arc::clone(&self.0.alloc))
-    }
-
-    #[wasm_bindgen]
     pub fn push_fn(&mut self, name: String, func: js_sys::Function, arg_len: usize) -> Result<(), JsValue> {
         let mut map: HashMap<String, Arc<dyn FnExtern + Send + Sync>> = HashMap::new();
         map.insert(name.clone(), Arc::new(JsExternFuncSync::from(func)));
@@ -104,7 +99,8 @@ auto_impl_fn!(
             v.map_err(|e| e.to_js_error("Parse Error"))
         }
     ),
-    (MachineWrapper, push_resolver(resolver: MethodResolverWrapper) -> ())
+    (MachineWrapper, push_resolver(resolver: MethodResolverWrapper) -> ()),
+    (MachineWrapper, get_alloc -> AllocatorWrapper)
 );
 
 
