@@ -8,5 +8,5 @@ fn print(v) {
 fn println(v) {
     v = to_str(v);
     v = concat(v, "\n");
-    print(v);
+    std.print(v);
 }

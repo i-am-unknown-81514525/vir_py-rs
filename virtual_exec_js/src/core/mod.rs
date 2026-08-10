@@ -72,6 +72,14 @@ impl MachineWrapper {
         fn_stack_ref.mapping.write_arc_safe().insert(name, extern_ptr);
         Ok(())
     }
+
+    #[wasm_bindgen]
+    pub fn load_named_module_sync_all(&self, name: &str, code: &str) -> Result<MachineWrapper, JsValue> {
+        let module = virtual_exec_core::parse(code).map_err(|e| e.to_js_error("Parse error"))?;
+        self.0.push_named_module_sync_all(name, &module)
+            .map_err(|e| e.to_js_error("Execution error"))
+            .map(MachineWrapper::from)
+    }
 }
 
 

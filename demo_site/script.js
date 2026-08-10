@@ -23,6 +23,19 @@ const INSTRUCTION_LIMIT = 200_000n;
 
 let is_running = false;
 
+const STDLIB = `stdout = get_output_stream();
+
+fn print(v) {
+    v = to_str(v);
+    write_stream(std.stdout, v);
+}
+
+fn println(v) {
+    v = to_str(v);
+    v = concat(v, "\\n");
+    std.print(v);
+}`;
+
 function set_running_state(state) {
     if (state) {
         document.getElementById("run_button").classList.add("hidden");
@@ -43,23 +56,29 @@ function vm_writer(arr) {
 async function run() {
     clearOutput();
     set_running_state(true);
-    const machine = new MachineWrapper(MEMORY_LIMIT, INSTRUCTION_LIMIT);
-    let output = new FnStreamOutput(vm_writer);
-    machine.push_resolver(new Builtin().default())
-    machine.push_resolver(output.to_resolver("get_output_stream"));
+    let pre = null, post = null, output = null;
     try {
-        machine.push_code(editor.getValue());
+        const pre = new MachineWrapper(MEMORY_LIMIT, INSTRUCTION_LIMIT);
+        let output = new FnStreamOutput(vm_writer);
+        pre.push_resolver(new Builtin().default())
+        pre.push_resolver(output.to_resolver("get_output_stream"));
+        const post = pre.load_named_module_sync_all("std", STDLIB);
+        pre.free();
+        post.push_code(editor.getValue());
         while (is_running) {
-            let r = machine.sync_run_for(20_000n);
+            let r = post.sync_run_for(20_000n);
             if (!r.can_continue_executing) {
                 set_running_state(false);
+                continue;
             }
             await new Promise(resolve => setTimeout(resolve, 0));
         }
     } finally {
-        machine.free();
+        set_running_state(false);
+        output?.free();
+        post?.free();
+        pre?.free();
     }
-    set_running_state(false);
 }
 
 document.getElementById("run_button").addEventListener("click", run);

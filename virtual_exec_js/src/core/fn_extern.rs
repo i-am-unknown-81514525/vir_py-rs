@@ -84,22 +84,14 @@ impl FnStreamOutput {
 
 impl FnExtern for FnStreamOutput {
     fn fn_extern_sync<'a, 'b>(&self, machine: &'b mut Machine<'a>, values: Vec<ValuePtr<'a>>) -> Result<ValuePtr<'a>, ExecutionError> {
-        if values.len() != 1 {
+        if values.len() != 0 {
             return Err(ExecutionError::NonRecoverable(NonRecoverableError::IncorrectArgumentCountError));
         }
-        let ptr = values[0].clone();
-        let str = ptr.as_string();
-        if let Some(str) = str {
-            let vec = str.into_bytes();
-            machine.alloc.alloc(Value::Bool(self.0.read_arc_safe().sync_fn.f.deref()(vec)))
-                .map_err(|e| e.into())
-        } else {
-            Err(ExecutionError::NonRecoverable(NonRecoverableError::InvalidTypeError))
-        }
+        machine.alloc.alloc(Value::Any(Arc::new(RwLock::new(self.0.clone())))).map_err(|x| x.into())
     }
 
     fn get_size(&self) -> usize {
-        1
+        0
     }
 }
 
