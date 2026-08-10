@@ -81,3 +81,13 @@ pub fn syntax_check_err(code: &str) -> Option<JsValue> {
 pub fn syntax_check(code: &str) -> bool {
     parse(code).is_ok()
 }
+
+#[wasm_bindgen(start)]
+pub fn start() {
+
+    cfg_if::cfg_if! {
+        if #[cfg(feature = "console_error_panic_hook")] {
+            console_error_panic_hook::set_once();
+        }
+    }
+}
