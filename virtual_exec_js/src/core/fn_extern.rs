@@ -22,7 +22,7 @@ use crate::types::{extend_ptr, ValuePtrWrapper};
 use crate::types::alloc::AllocatorWrapper;
 
 #[wasm_bindgen]
-pub struct JsExternFuncSync(js_sys::Function);
+pub struct JsExternFuncSync(js_sys::Function, usize);
 
 #[wasm_bindgen]
 #[derive(Debug, Clone)]
@@ -43,9 +43,9 @@ impl VmAnyType for JsValueWrapper {
 
 
 
-impl From<js_sys::Function> for JsExternFuncSync {
-    fn from(value: js_sys::Function) -> Self {
-        Self(value)
+impl From<(js_sys::Function, usize)> for JsExternFuncSync {
+    fn from(value: (js_sys::Function, usize)) -> Self {
+        Self(value.0, value.1)
     }
 }
 
@@ -66,7 +66,7 @@ pub struct FnStreamOutput(OutputByteStream);
 impl FnStreamOutput {
     #[wasm_bindgen(constructor)]
     pub fn new(func: js_sys::Function) -> Self {
-        let func_wrapped: JsExternFuncSync = func.into();
+        let func_wrapped: JsExternFuncSync = (func, 1).into();
         let conv: Box<dyn Fn(Vec<u8>) -> bool + Send + Sync + 'static> = func_wrapped.into();
         let stream = OutputByteStream::new(RwLock::new(OutputByteStreamInner::new_sync(conv)));
         Self(stream)
@@ -99,7 +99,7 @@ impl FnExtern for FnStreamOutput {
     }
 
     fn get_size(&self) -> usize {
-        1024
+        1
     }
 }
 
@@ -123,7 +123,7 @@ impl FnExtern for JsExternFuncSync {
     }
 
     fn get_size(&self) -> usize {
-        1024
+        self.1
     }
 }
 

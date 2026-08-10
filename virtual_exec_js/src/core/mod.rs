@@ -62,7 +62,7 @@ impl MachineWrapper {
     #[wasm_bindgen]
     pub fn push_fn(&mut self, name: String, func: js_sys::Function, arg_len: usize) -> Result<(), JsValue> {
         let mut map: HashMap<String, Arc<dyn FnExtern + Send + Sync>> = HashMap::new();
-        map.insert(name.clone(), Arc::new(JsExternFuncSync::from(func)));
+        map.insert(name.clone(), Arc::new(JsExternFuncSync::from((func, arg_len))));
         self.0.resolvers.insert(0, MethodResolver::new(map));
         let extern_ptr = self.0.alloc.alloc(Value::FnPtrExternal(name.clone().into_boxed_str(), arg_len))
             .map_err(|e| e.to_js_error("Memory allocation failed on external function creation"))?;
@@ -101,7 +101,7 @@ auto_impl_fn!(
             v.map_err(|e| e.to_js_error("Parse Error"))
         }
     ),
-    (MachineWrapper, push_resolver(resolver: &MethodResolverWrapper) -> Option<JsValue> | 
+    (MachineWrapper, push_resolver(resolver: &MethodResolverWrapper) -> Option<JsValue> |
         |e: Result<(), ExecutionError>| e.map_err(|e| e.to_js_error("Failed to push resolver")).err()
     ),
     (MachineWrapper, get_alloc -> AllocatorWrapper),
