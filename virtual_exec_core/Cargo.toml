@@ -1,6 +1,6 @@
 [package]
 name = "virtual_exec_core"
-version = "0.5.1"
+version = "0.5.2"
 edition = "2024"
 repository = "https://github.com/i-am-unknown-81514525/virtual_exec"
 authors = ["i-am-unknown-81514525" ]
@@ -9,11 +9,11 @@ readme = "README.md"
 description = "Sub-crate of virtual_exec - provide definition for external function trait, and compile code AST to instructions"
 
 [dependencies]
-virtual_exec_type = { path = "../virtual_exec_type", version = "=0.5.1", default-features = false}
+virtual_exec_type = { path = "../virtual_exec_type", version = "=0.5.2", default-features = false}
 serde = { version = "1.0", default-features = false, features = ["derive", "alloc"] }
 async-trait = "0.1.89"
 async-lock =  { version = "3.4.2", default-features = false }
-virtual_exec_parser = { path = "../virtual_exec_parser", version = "=0.5.1", optional = true}
+virtual_exec_parser = { path = "../virtual_exec_parser", version = "=0.5.2", optional = true}
 proc-macro2 = "1.0"
 paste = "1.0.15"
 borsh = { version = "1.8.0", optional = true, features = ["borsh-derive", "bytes"], default-features = false }
