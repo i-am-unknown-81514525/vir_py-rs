@@ -39,12 +39,6 @@ impl Into<NonRecoverableError> for RecursionError {
     }
 }
 
-impl Into<ExecutionError> for RecursionError {
-    fn into(self) -> ExecutionError {
-        let non_recoverable: NonRecoverableError = self.into();
-        non_recoverable.into()
-    }
-}
 
 impl RecurseConfig {
     pub fn as_lim(self, alloc: MemoryAllocator) -> RecurseRestricter {

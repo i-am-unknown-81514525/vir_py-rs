@@ -1,4 +1,5 @@
 use alloc::string::String;
+use crate::config::recurse::RecursionError;
 
 #[derive(Debug, Copy, Clone, Ord, PartialOrd, Eq, PartialEq)]
 pub struct MemoryError;
@@ -49,6 +50,7 @@ pub enum CriticalError {
     FnStackUnderflowError,
     VStackUnderflowError,
     UnexpectedStateError,
+    MemoryOutOfBoundError
 }
 
 #[derive(Clone, Debug, PartialOrd, PartialEq, Ord, Eq)]
@@ -110,3 +112,21 @@ impl From<TypeConversionError> for ExecutionError {
 /// Memory that doesn't exist in the current allocator (It might exist in a different allocator, which cross allocator transfer is not supported)
 #[derive(Copy, Clone, Debug, Ord, PartialOrd, Eq, PartialEq)]
 pub struct MemoryOutOfBoundError;
+
+impl From<MemoryOutOfBoundError> for CriticalError {
+    fn from(_err: MemoryOutOfBoundError) -> Self {
+        CriticalError::MemoryOutOfBoundError
+    }
+}
+
+impl From<MemoryOutOfBoundError> for ExecutionError {
+    fn from(_err: MemoryOutOfBoundError) -> Self {
+        ExecutionError::Critical(CriticalError::MemoryOutOfBoundError)
+    }
+}
+
+impl From<RecursionError> for ExecutionError {
+    fn from(_err: RecursionError) -> Self {
+        ExecutionError::NonRecoverable(NonRecoverableError::RecursionError)
+    }
+}

@@ -370,6 +370,7 @@ impl<'a> Machine<'a> {
     }
 
     pub fn set_root(&self, key: String, ptr: ValuePtr<'a>) -> Result<(), ExecutionError> {
+        let ptr = self.alloc.lock_arc_safe().get_eq_obj(&ptr)?;
         self.machine.fn_stack_frame.get(0)
             .ok_or_else(|| ExecutionError::Critical(CriticalError::FnStackUnderflowError))?
             .mapping.write_arc_safe()
@@ -378,6 +379,7 @@ impl<'a> Machine<'a> {
     }
 
     pub fn set_top(&self, key: String, ptr: ValuePtr<'a>) -> Result<(), ExecutionError> {
+        let ptr = self.alloc.lock_arc_safe().get_eq_obj(&ptr)?;
         self.machine.fn_stack_frame.last()
             .ok_or_else(|| ExecutionError::Critical(CriticalError::FnStackUnderflowError))?
             .mapping.write_arc_safe()
