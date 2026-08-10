@@ -156,3 +156,7 @@ auto_diff_type_op!(
     (i64, String),
     (String, Error)
 );
+
+
+#[inline(never)]
+pub(crate) fn __force_link_op_impl() {}

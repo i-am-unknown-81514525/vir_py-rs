@@ -68,6 +68,7 @@ macro_rules! __binary_op_create {
             ::inventory::collect!([< Op $alt_name Impl>]);
 
             pub fn [<err_op_ $name>]<'ctx>(lhs: $crate::mem::ValuePtr<'ctx>, rhs: $crate::mem::ValuePtr<'ctx>, arena: &$crate::mem::MemoryAllocator<'ctx>) -> ::core::result::Result<$crate::mem::ValuePtr<'ctx>, $crate::error::TypeConversionError> {
+                $crate::op_impl::__force_link_op_impl();
                 for implementation in ::inventory::iter::<[<Op $alt_name Impl>]> {
                     if let ::core::option::Option::Some(result) = (implementation.function)(&lhs, &rhs, arena) {
                        return result;
@@ -139,6 +140,7 @@ macro_rules! __unary_op_create {
             pub struct [< Op $alt_name Impl>] {pub function: $crate::op::UnaryOpFn }
             ::inventory::collect!([< Op $alt_name Impl>]);
             pub fn [<err_op_ $name>]<'ctx>(rhs: $crate::mem::ValuePtr<'ctx>, arena: &$crate::mem::MemoryAllocator<'ctx>) -> ::core::result::Result<$crate::mem::ValuePtr<'ctx>, $crate::error::TypeConversionError> {
+                $crate::op_impl::__force_link_op_impl();
                 for implementation in ::inventory::iter::<[<Op $alt_name Impl>]> {
                     if let ::core::option::Option::Some(result) = (implementation.function)(&rhs, arena) {
                        return result;

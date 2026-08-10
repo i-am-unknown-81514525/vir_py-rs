@@ -82,9 +82,18 @@ pub fn syntax_check(code: &str) -> bool {
     parse(code).is_ok()
 }
 
+#[cfg(target_family = "wasm")]
+unsafe extern "C" {
+    fn __wasm_call_ctors();
+}
+
+
 #[wasm_bindgen(start)]
 pub fn start() {
-
+    #[cfg(target_family = "wasm")]
+    unsafe {
+        __wasm_call_ctors();
+    }
     cfg_if::cfg_if! {
         if #[cfg(feature = "console_error_panic_hook")] {
             console_error_panic_hook::set_once();
