@@ -65,3 +65,77 @@ textarea {
 .hidden {
     visibility: hidden;
 }
+#metrics {
+    display: flex;
+    align-items: center;
+    flex-wrap: wrap;
+    gap: 4px 16px;
+    margin: 0 12px 8px;
+    font-size: 12px;
+    font-variant-numeric: tabular-nums;
+}
+
+#metrics .metric {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+}
+
+#metrics .label {
+    color: var(--dimmer-text);
+}
+
+#metrics .num {
+    color: var(--main-text);
+}
+
+#metrics .bar {
+    display: inline-block;
+    width: 90px;
+    height: 6px;
+    border-radius: 3px;
+    background: var(--hover-background);
+    overflow: hidden;
+}
+
+#metrics .bar > span {
+    display: block;
+    width: 0;
+    height: 100%;
+    background: var(--main-color);
+    transition: width 120ms linear;
+}
+
+#metrics .bar > span.warn {
+    background: var(--yellow);
+}
+
+#metrics .bar > span.danger {
+    background: var(--red);
+}
+
+#metrics .note {
+    color: var(--dimmer-text);
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+    max-width: 60ch;
+}
+
+#metrics .chip {
+    padding: 1px 8px;
+    border-radius: 3px;
+    background: var(--hover-background);
+    color: var(--dimmer-text);
+}
+
+#metrics .chip[data-state="running"] { color: var(--sky); }
+#metrics .chip[data-state="done"]    { color: var(--green); }
+#metrics .chip[data-state="timeout"] { color: var(--peach); }
+#metrics .chip[data-state="error"]   { color: var(--red); }
+
+@media (prefers-reduced-motion: reduce) {
+    #metrics .bar > span {
+        transition: none;
+    }
+}

@@ -18,6 +18,26 @@
     <label>
         <textarea class="monospace boundary" id="editor"></textarea>
     </label>
+
+    <div id="metrics" class="monospace">
+        <span id="metric_state" class="chip">idle</span>
+        <span class="metric" title="vByte">
+            <span class="label">mem</span>
+            <span class="bar"><span id="metric_mem_fill"></span></span>
+            <span id="metric_mem" class="num">&mdash;</span>
+        </span>
+        <span class="metric" title="inst">
+            <span class="label">inst</span>
+            <span class="bar"><span id="metric_inst_fill"></span></span>
+            <span id="metric_inst" class="num">&mdash;</span>
+        </span>
+        <span class="metric" title="obj">
+            <span class="label">obj</span>
+            <span id="metric_obj" class="num">&mdash;</span>
+        </span>
+        <span id="metric_note" class="note"></span>
+    </div>
+
     <pre id="output" class="monospace boundary"></pre>
 </body>
 </html>
