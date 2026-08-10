@@ -39,9 +39,62 @@ impl AllocatorWrapper {
     }
 }
 
+macro_rules! auto_impl_fn_inner {
+    ($(($t:ty, $a:tt $($b:ident)? $(($($v:ident : $it:ty),*))? -> $rt:ty $(| $f:expr)?)),+ $(,)?) => {
+        $(
+            auto_impl_fn_inner!($t, $a $($b)? $(($($v : $it),*))? -> $rt $(| $f)?);
+        )*
+    };
+    ($t:ty, $name:ident $(($($v:ident : $it:ty),*))? -> $rt:ty | $f:expr) => {
+        #[wasm_bindgen]
+        impl $t {
+            #[wasm_bindgen]
+            #[allow(unused_imports)]
+            pub fn $name(&self, $($($v : $it),*)?) -> $rt {
+                use $crate::Dewrap;
+                ($f)(self.0.lock_arc_safe().$name($($(($v).dewrap()),*)?))
+            }
+        }
+    };
+
+    ($t:ty, async $name:ident $(($($v:ident : $it:ty),*))? -> $rt:ty | $f:expr) => {
+        #[wasm_bindgen]
+        impl $t {
+            #[wasm_bindgen]
+            #[allow(unused_imports)]
+            pub async fn $name(&self, $($($v : $it),*)?) -> $rt {
+                use $crate::Dewrap;
+                ($f)(self.0.lock_arc_safe().$name($($(($v).dewrap()),*)?).await)
+            }
+        }
+    };
+
+     ($t:ty, $name:ident $(($($v:ident : $it:ty),*))? -> $rt:ty) => {
+         #[allow(non_camel_case_types)]
+         const _:() = {
+             type __internal = $rt;
+             auto_impl_fn_inner!($t, $name $(($($v : $it),*))? -> $rt | __internal::from);
+         };
+    };
+
+    ($t:ty, async $name:ident $(($($v:ident : $it:ty),*))? -> $rt:ty) => {
+        #[allow(non_camel_case_types)]
+        const _:() = {
+            type __internal = $rt;
+            auto_impl_fn_inner!($t, async $name $(($($v : $it),*))? -> $rt | __internal::from);
+        };
+    };
+}
+
 auto_impl_fn!(
     (AllocatorWrapper, curr -> usize),
     (AllocatorWrapper, max -> usize),
+);
+
+auto_impl_fn_inner!(
+    (AllocatorWrapper, gc_weak -> ()),
+    (AllocatorWrapper, obj_count -> usize),
+    (AllocatorWrapper, check_alloc(max: usize) -> bool)
 );
 
 #[wasm_bindgen]
