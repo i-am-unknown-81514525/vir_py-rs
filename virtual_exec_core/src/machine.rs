@@ -146,11 +146,11 @@ impl<'a> Machine<'a> {
             self.machine.run_once().map(|x| (x, true))
         } else {
             if let Ok(State::FnExternInput(func, _)) = &self.machine.state {
-                let fns: Vec<Arc<dyn FnExtern + Send + Sync>> =
-                    self.resolvers.iter().filter_map(|x| x.get(func)).collect();
-                if fns.len() > 0 {
+                let func: Option<Arc<dyn FnExtern + Send + Sync>> =
+                    self.resolvers.iter().find_map(|x| x.get(func));
+                if let Some(func) = func {
                     let inputs = self.machine.retrieve_fn_input()?.unwrap();
-                    let result = self.dispatch_extern_sync(&fns[0], inputs.1);
+                    let result = self.dispatch_extern_sync(&func, inputs.1);
                     self.machine.push_fn_output(result);
                     return self.machine.state.clone().map(|x| (x, true));
                 }
@@ -187,14 +187,14 @@ impl<'a> Machine<'a> {
             self.machine.run_once().map(|x| (x, true))
         } else {
             if let Ok(State::FnExternInput(func, _)) = &self.machine.state {
-                let fns: Vec<Arc<dyn FnExtern + Send + Sync>> =
-                    self.resolvers.iter().filter_map(|x| x.get(func)).collect();
-                if fns.len() > 0 {
+                let func: Option<Arc<dyn FnExtern + Send + Sync>> =
+                    self.resolvers.iter().find_map(|x| x.get(func));
+                if let Some(func) = func {
                     let inputs = self.machine.retrieve_fn_input()?.unwrap();
                     let result;
                     {
                         let x: &'_ mut Self = &mut *self;
-                        result = fns[0].fn_extern_async(x, inputs.1).await;
+                        result = func.fn_extern_async(x, inputs.1).await;
                     }
                     self.machine.push_fn_output(result);
                     return self.machine.state.clone().map(|x| (x, true));
