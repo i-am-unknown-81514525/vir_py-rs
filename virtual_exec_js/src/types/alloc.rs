@@ -32,7 +32,7 @@ impl Dewrap<MemoryAllocator<'static>> for AllocatorWrapper {
 #[wasm_bindgen]
 impl AllocatorWrapper {
     #[wasm_bindgen]
-    pub fn get_owned(&mut self, value: ValuePtrWrapper) -> Result<OwnedValueWrapper, JsValue> {
+    pub fn get_owned(&mut self, value: &ValuePtrWrapper) -> Result<OwnedValueWrapper, JsValue> {
         self.0.lock_arc_safe().get_owned(&value.0)
             .map_err(|e| e.to_js_error("Memory out of bound"))
             .map(|v| v.into())
@@ -98,7 +98,7 @@ auto_impl_fn_inner!(
 );
 
 #[wasm_bindgen]
-pub fn deconstruct_owned_value(value: OwnedValueWrapper, alloc: AllocatorWrapper) -> Result<ValuePtrWrapper, JsValue> {
+pub fn deconstruct_owned_value(value: &OwnedValueWrapper, alloc: &AllocatorWrapper) -> Result<ValuePtrWrapper, JsValue> {
     virtual_exec_type::mem::deconstruct_owned_value(value.dewrap(), alloc.dewrap())
         .map(ValuePtrWrapper::from)
         .map_err(|e| e.to_js_error("Memory out of bound"))

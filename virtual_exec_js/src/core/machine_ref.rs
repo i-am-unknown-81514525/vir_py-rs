@@ -130,10 +130,10 @@ auto_impl_fn_injected!(
         |x: Option<OwnedValue>| x.map(|y| y.into())
     ),
     (CheckedMachineRef, get_alloc -> AllocatorWrapper),
-    (CheckedMachineRef, set_root(key: String, ptr: ValuePtrWrapper) -> Option<JsValue> |
+    (CheckedMachineRef, set_root(key: &str, ptr: &ValuePtrWrapper) -> Option<JsValue> |
         |v: Result<(), ExecutionError>| v.map_err(|e| e.to_js_error("Value set error")).err()
     ),
-    (CheckedMachineRef, set_top(key: String, ptr: ValuePtrWrapper) -> Option<JsValue> |
+    (CheckedMachineRef, set_top(key: &str, ptr: &ValuePtrWrapper) -> Option<JsValue> |
         |v: Result<(), ExecutionError>| v.map_err(|e| e.to_js_error("Value set error")).err()
     ),
     (CheckedMachineRef, grant_lim(additional: u64) -> ()),

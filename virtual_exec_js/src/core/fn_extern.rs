@@ -273,7 +273,7 @@ fn clone_construct<'a>(value: &JsValue, alloc: &MemoryAllocator<'a>) -> Result<V
 }
 
 #[wasm_bindgen]
-pub fn from_js(value: JsValue, alloc: AllocatorWrapper) -> Result<ValuePtrWrapper, JsValue> {
+pub fn from_js(value: &JsValue, alloc: &AllocatorWrapper) -> Result<ValuePtrWrapper, JsValue> {
     clone_construct(&value, &alloc.dewrap())
         .map(ValuePtrWrapper::from)
         .map_err(|e| e.to_js_error("Conversion failed"))

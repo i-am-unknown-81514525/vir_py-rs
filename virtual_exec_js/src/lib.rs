@@ -1,5 +1,5 @@
 pub mod core;
-mod types;
+pub mod types;
 mod error;
 pub mod stdlib;
 
@@ -10,6 +10,12 @@ pub trait Dewrap<T> {
 impl<T: Clone> Dewrap<T> for T {
     fn dewrap(&self) -> T {
         self.clone()
+    }
+}
+
+impl Dewrap<String> for &str {
+    fn dewrap(&self) -> String {
+        self.to_string()
     }
 }
 
