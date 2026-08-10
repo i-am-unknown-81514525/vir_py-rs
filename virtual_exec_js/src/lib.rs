@@ -60,4 +60,19 @@ macro_rules! auto_impl_fn {
     };
 }
 
+use wasm_bindgen::JsValue;
 pub(crate) use auto_impl_fn;
+use virtual_exec_core::parse;
+use virtual_exec_core::sequential::ParseError;
+use crate::error::Error;
+use wasm_bindgen::prelude::wasm_bindgen;
+
+#[wasm_bindgen]
+pub fn syntax_check_err(code: &str) -> Option<JsValue> {
+    parse(code).map_err(|x| x.to_js_error("Parse error: ")).err()
+}
+
+#[wasm_bindgen]
+pub fn syntax_check(code: &str) -> bool {
+    parse(code).is_ok()
+}
