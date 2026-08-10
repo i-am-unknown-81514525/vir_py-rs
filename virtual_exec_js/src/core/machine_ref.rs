@@ -44,9 +44,25 @@ impl MachineRef {
     }
 }
 
+#[wasm_bindgen]
 impl CheckedMachineRef {
     pub fn state(&self) -> bool {
         *self.1.read_arc_safe()
+    }
+
+    #[wasm_bindgen]
+    pub fn get_lim(&self) -> u64 {
+        if !self.state() {
+            panic!("Out of scope");
+        }
+        use crate::Dewrap;
+        if self.0.is_null() {
+            panic!("Null pointer");
+        }
+        let machine = unsafe {
+            self.0.as_mut().expect("Unable to get mutable pointer")
+        };
+        machine.machine.lim
     }
 }
 

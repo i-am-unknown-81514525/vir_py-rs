@@ -80,6 +80,11 @@ impl MachineWrapper {
             .map_err(|e| e.to_js_error("Execution error"))
             .map(MachineWrapper::from)
     }
+    
+    #[wasm_bindgen]
+    pub fn get_lim(&self) -> u64 {
+        self.0.machine.lim
+    }
 }
 
 
