@@ -1,6 +1,6 @@
 use std::ops::Deref;
 use wasm_bindgen::prelude::wasm_bindgen;
-use virtual_exec_core::fn_extern::MethodResolver;
+use virtual_exec_core::fn_extern::{FnExtern, MethodResolver};
 use crate::Dewrap;
 
 #[wasm_bindgen]

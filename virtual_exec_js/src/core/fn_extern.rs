@@ -5,7 +5,7 @@ use std::sync::Arc;
 use async_lock::RwLock;
 use wasm_bindgen::JsValue;
 use wasm_bindgen::prelude::wasm_bindgen;
-use virtual_exec_core::fn_extern::{FnExtern, FnExternConstruct};
+use virtual_exec_core::fn_extern::{FnExtern, FnExternConstruct, MethodResolver};
 use virtual_exec_core::Machine;
 use virtual_exec_std::stream::write::{OutputByteStream, OutputByteStreamInner};
 use virtual_exec_type::base::{TypeCast, VmAnyType};
@@ -17,6 +17,7 @@ use crate::core::{lifetime_transmute_machine_ref_mut};
 use crate::core::machine_ref::MachineRef;
 use crate::Dewrap;
 use crate::error::Error;
+use crate::stdlib::MethodResolverWrapper;
 use crate::types::{extend_ptr, ValuePtrWrapper};
 use crate::types::alloc::AllocatorWrapper;
 
@@ -71,6 +72,7 @@ impl Into<Box<dyn Fn(Vec<u8>) -> bool + Send + Sync + 'static>> for JsExternFunc
 }
 
 #[wasm_bindgen]
+#[derive(Clone)]
 pub struct FnStreamOutput(Option<OutputByteStream>);
 
 #[wasm_bindgen]
@@ -81,6 +83,15 @@ impl FnStreamOutput {
         let conv: Box<dyn Fn(Vec<u8>) -> bool + Send + Sync + 'static> = func_wrapped.into();
         let stream = OutputByteStream::new(RwLock::new(OutputByteStreamInner::new_sync(conv)));
         Self(Some(stream))
+    }
+
+    #[wasm_bindgen]
+    pub fn to_resolver(&self, name: String) -> MethodResolverWrapper {
+        let v: Arc<dyn FnExtern + Send + Sync> = Arc::new(self.clone());
+        let resolver = MethodResolver::new(HashMap::from(
+            [(name, v)]
+        ));
+        MethodResolverWrapper::from(resolver)
     }
 }
 
