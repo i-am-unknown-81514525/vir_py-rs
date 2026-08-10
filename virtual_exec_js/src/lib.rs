@@ -4,12 +4,12 @@ mod error;
 pub mod stdlib;
 
 pub trait Dewrap<T> {
-    fn dewrap(self) -> T;
+    fn dewrap(&self) -> T;
 }
 
-impl<T> Dewrap<T> for T {
-    fn dewrap(self) -> T {
-        self
+impl<T: Clone> Dewrap<T> for T {
+    fn dewrap(&self) -> T {
+        self.clone()
     }
 }
 

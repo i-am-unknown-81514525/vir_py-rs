@@ -8,8 +8,8 @@ use crate::Dewrap;
 pub struct MethodResolverWrapper(MethodResolver);
 
 impl Dewrap<MethodResolver> for MethodResolverWrapper {
-    fn dewrap(self) -> MethodResolver {
-        self.0
+    fn dewrap(&self) -> MethodResolver {
+        self.0.clone()
     }
 }
 

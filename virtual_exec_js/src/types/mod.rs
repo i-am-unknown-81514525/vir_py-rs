@@ -15,8 +15,8 @@ use crate::types::owned::OwnedValueWrapper;
 pub struct ValuePtrWrapper(ValuePtr<'static>);
 
 impl Dewrap<ValuePtr<'static>> for ValuePtrWrapper {
-    fn dewrap(self) -> ValuePtr<'static> {
-        self.0
+    fn dewrap(&self) -> ValuePtr<'static> {
+        self.0.clone()
     }
 }
 

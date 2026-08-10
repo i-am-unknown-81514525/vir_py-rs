@@ -24,8 +24,8 @@ impl From<MemoryAllocator<'static>> for AllocatorWrapper {
 }
 
 impl Dewrap<MemoryAllocator<'static>> for AllocatorWrapper {
-    fn dewrap(self) -> MemoryAllocator<'static> {
-        self.0
+    fn dewrap(&self) -> MemoryAllocator<'static> {
+        self.0.clone()
     }
 }
 

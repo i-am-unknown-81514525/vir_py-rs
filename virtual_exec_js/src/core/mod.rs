@@ -135,9 +135,3 @@ pub(crate) fn lifetime_transmute_machine_ref_mut<'a, 'b, 'c>(ptr: &'c mut Machin
         std::mem::transmute(ptr)
     }
 }
-
-impl Dewrap<Machine<'static>> for MachineWrapper {
-    fn dewrap(self) -> Machine<'static> {
-        self.0
-    }
-}

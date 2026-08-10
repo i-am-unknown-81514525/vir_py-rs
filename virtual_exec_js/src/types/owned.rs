@@ -33,8 +33,8 @@ impl From<OwnedValue> for OwnedValueWrapper {
 }
 
 impl Dewrap<OwnedValue> for OwnedValueWrapper {
-    fn dewrap(self) -> OwnedValue {
-        self.inner
+    fn dewrap(&self) -> OwnedValue {
+        self.inner.clone()
     }
 }
 
