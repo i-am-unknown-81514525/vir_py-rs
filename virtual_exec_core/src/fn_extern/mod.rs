@@ -16,7 +16,7 @@ pub trait FnExternConstruct {
 }
 
 #[async_trait]
-pub trait FnExtern: FnExternConstruct {
+pub trait FnExtern {
     fn fn_extern_sync<'a, 'b>(
         &self,
         machine: &'b mut Machine<'a>,

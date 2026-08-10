@@ -22,7 +22,7 @@ use crate::types::{extend_ptr, ValuePtrWrapper};
 use crate::types::alloc::AllocatorWrapper;
 
 #[wasm_bindgen]
-pub struct JsExternFuncSync(Option<js_sys::Function>);
+pub struct JsExternFuncSync(js_sys::Function);
 
 #[wasm_bindgen]
 #[derive(Debug, Clone)]
@@ -43,29 +43,16 @@ impl VmAnyType for JsValueWrapper {
 
 
 
-impl FnExternConstruct for JsExternFuncSync {
-    fn new() -> Self
-    where
-        Self: Sized,
-    {
-        Self(None)
-    }
-}
-
 impl From<js_sys::Function> for JsExternFuncSync {
     fn from(value: js_sys::Function) -> Self {
-        Self(Some(value))
+        Self(value)
     }
 }
 
 impl Into<Box<dyn Fn(Vec<u8>) -> bool + Send + Sync + 'static>> for JsExternFuncSync {
     fn into(self) -> Box<dyn Fn(Vec<u8>) -> bool + Send + Sync + 'static> {
         let func = move |x: Vec<u8>| {
-            if let Some(js) = &self.0 {
-                js.call1(&JsValue::undefined(), &JsValue::from(x)).is_ok()
-            } else {
-                false
-            }
+            (&self.0).call1(&JsValue::undefined(), &JsValue::from(x)).is_ok()
         };
         Box::new(func)
     }
@@ -73,7 +60,7 @@ impl Into<Box<dyn Fn(Vec<u8>) -> bool + Send + Sync + 'static>> for JsExternFunc
 
 #[wasm_bindgen]
 #[derive(Clone)]
-pub struct FnStreamOutput(Option<OutputByteStream>);
+pub struct FnStreamOutput(OutputByteStream);
 
 #[wasm_bindgen]
 impl FnStreamOutput {
@@ -82,7 +69,7 @@ impl FnStreamOutput {
         let func_wrapped: JsExternFuncSync = func.into();
         let conv: Box<dyn Fn(Vec<u8>) -> bool + Send + Sync + 'static> = func_wrapped.into();
         let stream = OutputByteStream::new(RwLock::new(OutputByteStreamInner::new_sync(conv)));
-        Self(Some(stream))
+        Self(stream)
     }
 
     #[wasm_bindgen]
@@ -95,15 +82,6 @@ impl FnStreamOutput {
     }
 }
 
-impl FnExternConstruct for FnStreamOutput {
-    fn new() -> Self
-    where
-        Self: Sized,
-    {
-        Self(None)
-    }
-}
-
 impl FnExtern for FnStreamOutput {
     fn fn_extern_sync<'a, 'b>(&self, machine: &'b mut Machine<'a>, values: Vec<ValuePtr<'a>>) -> Result<ValuePtr<'a>, ExecutionError> {
         if values.len() != 1 {
@@ -113,7 +91,7 @@ impl FnExtern for FnStreamOutput {
         let str = ptr.as_string();
         if let Some(str) = str {
             let vec = str.into_bytes();
-            machine.alloc.alloc(Value::Bool(self.0.as_ref().unwrap().read_arc_safe().sync_fn.f.deref()(vec)))
+            machine.alloc.alloc(Value::Bool(self.0.read_arc_safe().sync_fn.f.deref()(vec)))
                 .map_err(|e| e.into())
         } else {
             Err(ExecutionError::NonRecoverable(NonRecoverableError::InvalidTypeError))
@@ -127,25 +105,21 @@ impl FnExtern for FnStreamOutput {
 
 impl FnExtern for JsExternFuncSync {
     fn fn_extern_sync<'a, 'b>(&self, machine: &'b mut Machine<'a>, values: Vec<ValuePtr<'a>>) -> Result<ValuePtr<'a>, ExecutionError> {
-        if let Some(func) = &self.0 {
-            let mut machine_ref = MachineRef::from(lifetime_transmute_machine_ref_mut(machine));
-            let values_conv: Vec<ValuePtrWrapper> = values.into_iter().map(extend_ptr).map(ValuePtrWrapper::from).collect();
-            let result = unsafe {
-                machine_ref.with_guarded(|m| {
-                    let a = JsValue::from(m);
-                    let b = JsValue::from(values_conv);
-                    func.call2(&JsValue::NULL, &a, &b)
-                })
-            };
-            let result = match result {
-                Some(Ok(v)) => Ok(v),
-                Some(Err(e)) => Err(ExecutionError::NonRecoverable(NonRecoverableError::GenericError)),
-                None => Err(ExecutionError::Critical(CriticalError::UnexpectedStateError))
-            }?;
-            clone_construct(&result, &machine.alloc)
-        } else {
-            Err(ExecutionError::NonRecoverable(NonRecoverableError::UnexpectedFunctionCall))
-        }
+        let mut machine_ref = MachineRef::from(lifetime_transmute_machine_ref_mut(machine));
+        let values_conv: Vec<ValuePtrWrapper> = values.into_iter().map(extend_ptr).map(ValuePtrWrapper::from).collect();
+        let result = unsafe {
+            machine_ref.with_guarded(|m| {
+                let a = JsValue::from(m);
+                let b = JsValue::from(values_conv);
+                self.0.call2(&JsValue::NULL, &a, &b)
+            })
+        };
+        let result = match result {
+            Some(Ok(v)) => Ok(v),
+            Some(Err(e)) => Err(ExecutionError::NonRecoverable(NonRecoverableError::GenericError)),
+            None => Err(ExecutionError::Critical(CriticalError::UnexpectedStateError))
+        }?;
+        clone_construct(&result, &machine.alloc)
     }
 
     fn get_size(&self) -> usize {
