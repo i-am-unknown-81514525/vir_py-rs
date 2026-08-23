@@ -1,5 +1,5 @@
 use crate::sequential::instructions::Instruction;
-use crate::sequential::instructions::Instruction::{Jmp, JmpNz, JmpZ, LoadLitBool};
+use crate::sequential::instructions::Instruction::{Jmp, JmpNz, JmpZ, LoadLitBool, Pop, Swap};
 use alloc::vec;
 use alloc::vec::Vec;
 use virtual_exec_type::ast::core::{
@@ -195,17 +195,29 @@ impl GetInstruction for Expr {
                         inst.extend(left_inst);
                         if let BinaryOperator::And = op {
                             // Doesn't actually need logical and since it is in the jmp behaviour
-                            // JmpZ (+1 => 1 hidden)
-                            let right_inst = right.kind.inst(offset + 1);
+                            // LoadLitBool(false) (+1 -> 1 hidden)
+                            // Swap (+1 => 2 hidden)
+                            // JmpZ (+1 => 3 hidden)
+                            // Pop (+1 => 4 hidden)
+                            let right_inst = right.kind.inst(offset + 4);
                             offset += right_inst.len() as u64;
-                            inst.push(JmpZ(offset + 1));
+                            inst.push(LoadLitBool(false));
+                            inst.push(Swap);
+                            inst.push(JmpZ(offset + 4));
+                            inst.push(Pop);
                             inst.extend(right_inst);
                         } else if let BinaryOperator::Or = op {
                             // Doesn't actually need logical or since it is in the jmp behaviour
-                            // JmpNz (+1 => 1 hidden)
-                            let right_inst = right.kind.inst(offset + 1);
+                            // LoadLitBool(true) (+1 -> 1 hidden)
+                            // Swap (+1 => 2 hidden)
+                            // JmpNz (+1 => 3 hidden)
+                            // Pop (+1 => 4 hidden)
+                            let right_inst = right.kind.inst(offset + 4);
                             offset += right_inst.len() as u64;
-                            inst.push(JmpNz(offset + 1));
+                            inst.push(LoadLitBool(true));
+                            inst.push(Swap);
+                            inst.push(JmpNz(offset + 4));
+                            inst.push(Pop);
                             inst.extend(right_inst);
                         } else {
                             unreachable!()
