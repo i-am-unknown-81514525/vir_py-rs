@@ -96,6 +96,93 @@ fn test_value_creation_and_downcast() {
 
 ```
 
+### Example code:
+```
+print = std.print;
+println = std.println;
+
+i = 42;
+f = 3.5;
+s = "hi\n";
+b = true;
+n = None;
+xs = [10, 20, 30];
+
+a = i + 8;
+a -= 5;
+a *= 2;
+a /= 3;
+a = int(a);
+a %= 7;
+a <<= 4;
+a >>= 1;
+a |= 1;
+a &= 0xFF;
+println(a);
+println(-i);
+println(!b);
+println(i > 10 && f <= 4.0);
+println(i < 0 || f > 1.0);
+println(i == 42);
+
+if a > 100 {
+    println("big");
+} else if a > 10 {
+    println("medium");
+} else {
+    println("small");
+}
+
+k = 0;
+total = 0;
+while k < 5 {
+    total += k;
+    k += 1;
+}
+println(total);
+
+fn add(x, y) {
+    return x + y;
+}
+
+fn fib(x) {
+    if x < 2 {
+        return x;
+    }
+    return fib(x - 1) + fib(x - 2);
+}
+
+println(add(2, 3));
+println(fib(10));
+
+xs[0] = 99;
+println(xs[1]);
+println(to_str(xs));
+
+arr = create_array();
+push_array(arr, 1);
+push_array(arr, "two");
+println(arr_get_len(arr));
+println(arr_get_from_idx(arr, 1));
+println(pop_array(arr));
+
+obj = create_obj();
+obj.name = "virtual_exec";
+obj["count"] = 3;
+println(obj.name);
+println(to_str(dir(obj)));
+println(rm_ele(obj, "count"));
+println(to_str(obj));
+
+println(concat("total = ", to_str(total)));
+println(int(3.9));
+
+out = get_output_stream();
+write_stream(out, "stream\n");
+print("no newline -> ");
+println("newline");
+```
+
 WIP Feature list:
 - [x] Variable assignment
 - [x] Attribute assignment
