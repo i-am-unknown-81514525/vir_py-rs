@@ -8,7 +8,6 @@ use virtual_exec_type::vm_type::*;
 use std::sync::{Arc};
 use async_lock::RwLock;
 use virtual_exec_std::stream::write::{OutputByteStream, OutputByteStreamInner};
-use virtual_exec_extern::*;
 use virtual_exec_type::vm_type::Error;
 
 pub static PRINT_BUFFER: StdMutex<String> = StdMutex::new(String::new());
