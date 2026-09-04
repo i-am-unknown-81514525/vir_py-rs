@@ -1,3 +1,4 @@
+use core::fmt::{Debug, Formatter};
 use std::marker::PhantomData;
 
 #[macro_export]
@@ -91,5 +92,27 @@ impl<X, Y, Z> Extend<X, Y, Z> for Tree<X, Y> {
     type Output = Tree<Z, Tree<X, Y>>;
     fn extend(self, value: Z) -> Self::Output {
         Tree { left: value, right: self }
+    }
+}
+
+impl<X: Clone, Y: Clone> Clone for Tree<X, Y> {
+    fn clone(&self) -> Self {
+        Tree { left: self.left.clone(), right: self.right.clone() }
+    }
+}
+
+impl<X: Copy, Y: Copy> Copy for Tree<X, Y> {}
+
+impl<X: PartialEq, Y: PartialEq> PartialEq for Tree<X, Y> {
+    fn eq(&self, other: &Self) -> bool {
+        self.left == other.left && self.right == other.right
+    }
+}
+
+impl<X: Eq, Y: Eq> Eq for Tree<X, Y> {}
+
+impl<X: Debug, Y: Debug> Debug for Tree<X, Y> {
+    fn fmt(&self, f: &mut Formatter<'_>) -> core::fmt::Result {
+        write!(f, "virtual_exec_core::multistate::Tree {{left: {:?}, right: {:?}}}", self.left, self.right)
     }
 }
